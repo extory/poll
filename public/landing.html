@@ -386,7 +386,7 @@ a:hover { text-decoration: underline; }
 
 .ai-cards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   text-align: left;
   margin-bottom: 32px;
@@ -689,7 +689,8 @@ a:hover { text-decoration: underline; }
     <div class="tech-item"><span class="tech-dot" style="background:#34D399"></span> Node.js + Express</div>
     <div class="tech-item"><span class="tech-dot" style="background:#A78BFA"></span> Claude API</div>
     <div class="tech-item"><span class="tech-dot" style="background:#58A6FF"></span> Gemini API</div>
-    <div class="tech-item"><span class="tech-dot" style="background:#F97316"></span> Zero Dependencies DB</div>
+    <div class="tech-item"><span class="tech-dot" style="background:#34D399"></span> ChatGPT API</div>
+    <div class="tech-item"><span class="tech-dot" style="background:#F97316"></span> SQLite</div>
   </div>
 </section>
 
@@ -810,6 +811,10 @@ a:hover { text-decoration: underline; }
       <div class="ai-card">
         <h3><span style="color:var(--accent)">&#9679;</span> Gemini (Google)</h3>
         <p data-i18n="ai_gemini_desc"><a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>에서 API 키를 발급받으세요. 동일하게 어드민 설정에서 입력합니다.</p>
+      </div>
+      <div class="ai-card">
+        <h3><span style="color:var(--green)">&#9679;</span> ChatGPT (OpenAI)</h3>
+        <p data-i18n="ai_chatgpt_desc"><a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a>에서 API 키를 발급받으세요. GPT-4o 모델을 사용합니다.</p>
       </div>
     </div>
     <div class="ai-note">
@@ -941,6 +946,7 @@ i18n.init({
     ai_sub: '자신의 AI API 키를 사용하세요. AI 없이도 수동으로 폴을 만들 수 있습니다.',
     ai_claude_desc: '<a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요. 어드민 &rarr; API 설정에서 키를 입력하면 됩니다.',
     ai_gemini_desc: '<a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>에서 API 키를 발급받으세요. 동일하게 어드민 설정에서 입력합니다.',
+    ai_chatgpt_desc: '<a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a>에서 API 키를 발급받으세요. GPT-4o 모델을 사용합니다.',
     ai_note_title: 'AI 없이도 사용 가능합니다.',
     ai_note_desc: '어드민 대시보드에서 질문과 선택지를 직접 입력하여 폴을 수동으로 만들 수 있습니다. AI는 편의 기능일 뿐, 필수가 아닙니다. API 키는 브라우저 로컬스토리지에만 저장되며 서버에 보관되지 않습니다.',
     demo_desc: '이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 체험해보세요.',
@@ -980,6 +986,7 @@ i18n.init({
     ai_sub: 'Use your own AI API keys. You can also create polls manually without AI.',
     ai_claude_desc: 'Get your API key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>. Enter it in Admin &rarr; API Settings.',
     ai_gemini_desc: 'Get your API key from <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>. Enter it in Admin settings.',
+    ai_chatgpt_desc: 'Get your API key from <a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a>. Uses the GPT-4o model.',
     ai_note_title: 'Works without AI.',
     ai_note_desc: 'You can manually create polls by entering questions and options directly in the admin dashboard. AI is a convenience feature, not a requirement. API keys are stored only in browser localStorage — never on the server.',
     demo_desc: 'This site runs on Poll Platform. Try it out yourself.',

@@ -416,6 +416,7 @@ All text should be in Korean unless the user specifies otherwise.`;
     let result;
     if (engine === 'claude') result = await callClaude(api_key, systemPrompt, userPrompt);
     else if (engine === 'gemini') result = await callGemini(api_key, systemPrompt, userPrompt);
+    else if (engine === 'chatgpt') result = await callChatGPT(api_key, systemPrompt, userPrompt);
     else return res.status(400).json({ error: 'Unsupported engine' });
 
     const jsonMatch = result.match(/\{[\s\S]*\}/);
@@ -446,6 +447,24 @@ async function callGemini(apiKey, systemPrompt, userPrompt) {
   });
   if (!resp.ok) throw new Error(`Gemini API error (${resp.status}): ${await resp.text()}`);
   return (await resp.json()).candidates[0].content.parts[0].text;
+}
+
+async function callChatGPT(apiKey, systemPrompt, userPrompt) {
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.8,
+      max_tokens: 4096,
+    }),
+  });
+  if (!resp.ok) throw new Error(`ChatGPT API error (${resp.status}): ${await resp.text()}`);
+  return (await resp.json()).choices[0].message.content;
 }
 
 // ============================================================================

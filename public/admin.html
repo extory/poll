@@ -579,6 +579,9 @@ body {
           <button class="engine-btn" onclick="selectEngine('gemini')" id="btn-engine-gemini">
             🔵 Gemini
           </button>
+          <button class="engine-btn" onclick="selectEngine('chatgpt')" id="btn-engine-chatgpt">
+            🟢 ChatGPT
+          </button>
         </div>
 
         <div class="form-group">
@@ -664,6 +667,13 @@ body {
           <input class="form-input" id="setting-gemini-key" type="password"
             placeholder="AIza...">
           <div class="form-hint" data-i18n="hint_gemini_key">Google AI Studio에서 발급받을 수 있습니다.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ChatGPT (OpenAI) API Key</label>
+          <input class="form-input" id="setting-chatgpt-key" type="password"
+            placeholder="sk-proj-...">
+          <div class="form-hint" data-i18n="hint_chatgpt_key">OpenAI Platform에서 발급받을 수 있습니다.</div>
         </div>
 
         <button class="btn btn-primary" onclick="saveSettings()" data-i18n="btn_save_settings">설정 저장</button>
@@ -842,6 +852,7 @@ const translations = {
     settings_api_keys: 'AI API 키',
     hint_claude_key: 'Anthropic Console에서 발급받을 수 있습니다.',
     hint_gemini_key: 'Google AI Studio에서 발급받을 수 있습니다.',
+    hint_chatgpt_key: 'OpenAI Platform에서 발급받을 수 있습니다.',
     btn_save_settings: '설정 저장',
     hint_local_storage: 'API 키는 브라우저 로컬스토리지에만 저장됩니다.',
     settings_server_info: '서버 정보',
@@ -974,6 +985,7 @@ const translations = {
     settings_api_keys: 'AI API Keys',
     hint_claude_key: 'Available from the Anthropic Console.',
     hint_gemini_key: 'Available from Google AI Studio.',
+    hint_chatgpt_key: 'Available from OpenAI Platform.',
     btn_save_settings: 'Save Settings',
     hint_local_storage: 'API keys are stored in browser local storage only.',
     settings_server_info: 'Server Info',
@@ -1212,7 +1224,9 @@ function selectEngine(engine) {
   selectedEngine = engine;
   document.getElementById('btn-engine-claude').classList.toggle('selected', engine === 'claude');
   document.getElementById('btn-engine-gemini').classList.toggle('selected', engine === 'gemini');
-  document.getElementById('engine-display').textContent = engine === 'claude' ? 'Claude' : 'Gemini';
+  document.getElementById('btn-engine-chatgpt').classList.toggle('selected', engine === 'chatgpt');
+  const names = { claude: 'Claude', gemini: 'Gemini', chatgpt: 'ChatGPT' };
+  document.getElementById('engine-display').textContent = names[engine] || engine;
 }
 
 async function generateWithAI() {
@@ -1222,7 +1236,8 @@ async function generateWithAI() {
 
   if (!title) return toast(i18n.t('toast_enter_title'), 'error');
 
-  const keyField = selectedEngine === 'claude' ? 'setting-claude-key' : 'setting-gemini-key';
+  const keyFields = { claude: 'setting-claude-key', gemini: 'setting-gemini-key', chatgpt: 'setting-chatgpt-key' };
+  const keyField = keyFields[selectedEngine];
   const apiKey = document.getElementById(keyField).value || localStorage.getItem(`api_key_${selectedEngine}`);
   if (!apiKey) return toast(i18n.t('toast_api_key_missing'), 'error');
 
@@ -1542,16 +1557,20 @@ async function deletePoll() {
 function saveSettings() {
   const claudeKey = document.getElementById('setting-claude-key').value;
   const geminiKey = document.getElementById('setting-gemini-key').value;
+  const chatgptKey = document.getElementById('setting-chatgpt-key').value;
   if (claudeKey) localStorage.setItem('api_key_claude', claudeKey);
   if (geminiKey) localStorage.setItem('api_key_gemini', geminiKey);
+  if (chatgptKey) localStorage.setItem('api_key_chatgpt', chatgptKey);
   toast(i18n.t('toast_settings_saved'));
 }
 
 function loadSettings() {
   const claudeKey = localStorage.getItem('api_key_claude');
   const geminiKey = localStorage.getItem('api_key_gemini');
+  const chatgptKey = localStorage.getItem('api_key_chatgpt');
   if (claudeKey) document.getElementById('setting-claude-key').value = claudeKey;
   if (geminiKey) document.getElementById('setting-gemini-key').value = geminiKey;
+  if (chatgptKey) document.getElementById('setting-chatgpt-key').value = chatgptKey;
   document.getElementById('base-url-display').textContent = BASE;
 }
 

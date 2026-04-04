@@ -379,7 +379,125 @@ html, body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Language Toggle ─────────────────────── */
+/* ── Type Result ──────────────────────────── */
+.type-result {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.type-icon-card {
+  width: 100px; height: 100px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  margin: 0 auto 20px;
+  animation: pop-in 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes pop-in {
+  from { opacity:0; transform:scale(0.5) rotate(-10deg); }
+  to { opacity:1; transform:scale(1) rotate(0); }
+}
+
+.type-reveal {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.type-name {
+  font-size: clamp(32px, 9vw, 46px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.type-en {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 16px;
+}
+
+.type-desc {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 16px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: #C9D1D9;
+  text-align: left;
+  margin-bottom: 16px;
+}
+
+.type-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.type-trait {
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.type-scores {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 16px;
+}
+
+.type-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.type-score-row:last-child { margin-bottom: 0; }
+
+.type-score-label {
+  width: 85px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.type-score-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.type-score-fill {
+  height: 100%;
+  border-radius: 6px;
+  width: 0%;
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+.type-score-val {
+  width: 28px;
+  text-align: right;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ── Language Toggle ──────────────────────── */
 .lang-toggle { display:flex;gap:2px;background:rgba(28,35,48,0.8);border-radius:6px;padding:2px;position:fixed;top:16px;right:16px;z-index:100; }
 .lang-btn { padding:3px 10px;border:none;border-radius:4px;background:transparent;color:#7D8590;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer; }
 .lang-btn.active { background:#58A6FF;color:#0D1117; }
@@ -590,7 +708,13 @@ async function submitAndShowResults() {
     console.error('Submit error:', err);
   }
 
-  // Fetch aggregated results
+  // Type-result mode (cosine similarity)
+  if (pollData.result_mode === 'type' && pollData.types) {
+    showTypeResult();
+    return;
+  }
+
+  // Normal poll result — aggregated chart
   try {
     const resp = await fetch(`/api/polls/${pollId}/responses`);
     const data = await resp.json();
@@ -628,7 +752,6 @@ async function submitAndShowResults() {
 
     showScreen('result');
 
-    // Animate bars
     setTimeout(() => {
       document.querySelectorAll('.result-bar-fill').forEach(el => {
         el.style.width = el.dataset.width + '%';
@@ -637,6 +760,95 @@ async function submitAndShowResults() {
   } catch (err) {
     showScreen('result');
   }
+}
+
+/* ════════════════════════════════════════════
+   TYPE RESULT — cosine similarity matching
+════════════════════════════════════════════ */
+function showTypeResult() {
+  // Calculate trait totals from selected answers
+  const traits = {};
+  pollData.questions.forEach((q, qi) => {
+    const selectedIdx = answers[qi];
+    const opt = q.options[selectedIdx];
+    if (!opt || !opt.scores) return;
+    Object.entries(opt.scores).forEach(([trait, val]) => {
+      traits[trait] = (traits[trait] || 0) + val;
+    });
+  });
+
+  // Normalize to 0-100
+  const maxPerTrait = pollData.questions.length * 10;
+  const scores = {};
+  Object.keys(traits).forEach(t => {
+    scores[t] = Math.round((traits[t] / maxPerTrait) * 100);
+  });
+
+  // Cosine similarity against each type profile
+  let bestType = null;
+  let bestSim = -Infinity;
+
+  Object.entries(pollData.types).forEach(([typeKey, typeData]) => {
+    const profile = typeData.profile;
+    let dot = 0, magA = 0, magB = 0;
+    Object.keys(scores).forEach(trait => {
+      dot  += scores[trait] * (profile[trait] || 0);
+      magA += scores[trait] ** 2;
+      magB += (profile[trait] || 0) ** 2;
+    });
+    const sim = dot / (Math.sqrt(magA) * Math.sqrt(magB));
+    if (sim > bestSim) { bestSim = sim; bestType = typeKey; }
+  });
+
+  const t = pollData.types[bestType];
+  const lang = i18n.getLang();
+
+  // Update result screen
+  document.getElementById('result-title').textContent = i18n.t('type_reveal');
+  document.getElementById('result-subtitle').textContent = '';
+
+  const chart = document.getElementById('result-chart');
+  const traitNames = {
+    agility: 'Agility', stability: 'Stability',
+    contribution: 'Contribution', adaptability: 'Adaptability',
+    consistency: 'Consistency',
+  };
+
+  let scoreHtml = Object.keys(traitNames).map(trait => `
+    <div class="type-score-row">
+      <div class="type-score-label">${traitNames[trait]}</div>
+      <div class="type-score-bar"><div class="type-score-fill" data-width="${scores[trait] || 0}" style="background:${t.color}"></div></div>
+      <div class="type-score-val" style="color:${t.color}">${scores[trait] || 0}</div>
+    </div>
+  `).join('');
+
+  let traitsHtml = (t.traits || []).map(tr =>
+    `<span class="type-trait" style="color:${t.color};border:1.5px solid ${t.color}44;background:${t.color}11">${escHtml(tr)}</span>`
+  ).join('');
+
+  chart.innerHTML = `
+    <div class="type-result">
+      <div class="type-icon-card" style="background:linear-gradient(135deg,${t.color}33,${t.color}11)">${t.icon}</div>
+      <div class="type-reveal">${i18n.t('type_you_are')}</div>
+      <div class="type-name" style="color:${t.color}">${escHtml(t.ko)}</div>
+      <div class="type-en">${escHtml(t.en)}</div>
+    </div>
+    <div class="type-desc">${escHtml(t.desc)}</div>
+    <div class="type-traits">${traitsHtml}</div>
+    <div class="type-scores">
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-family:'Space Mono',monospace">${i18n.t('type_analysis')}</div>
+      ${scoreHtml}
+    </div>
+  `;
+
+  showScreen('result');
+
+  // Animate score bars
+  setTimeout(() => {
+    document.querySelectorAll('.type-score-fill').forEach(el => {
+      el.style.width = el.dataset.width + '%';
+    });
+  }, 300);
 }
 
 /* ════════════════════════════════════════════
@@ -688,6 +900,9 @@ i18n.init({
     poll_type: '참여형 폴',
     default_desc: '지금 바로 참여해보세요!',
     unit_participants: '명 참여',
+    type_reveal: '당신의 유형은...',
+    type_you_are: '짜잔! 당신은',
+    type_analysis: '특성 분석',
   },
   en: {
     loading: 'Loading poll...',
@@ -707,6 +922,9 @@ i18n.init({
     poll_type: 'Interactive Poll',
     default_desc: 'Join now and share your opinion!',
     unit_participants: ' participated',
+    type_reveal: 'Your type is...',
+    type_you_are: 'You are',
+    type_analysis: 'Trait Analysis',
   }
 }, 'lang-toggle');
 </script>

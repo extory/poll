@@ -632,6 +632,93 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'landing.html'));
 });
 
+// ============================================================================
+//  SEED: Developer type quiz (with scoring for type-result)
+// ============================================================================
+const SEED_POLL_ID = 'aline-developer-type-quiz';
+
+function seedDefaultPoll() {
+  const polls = loadPolls();
+  if (polls.find(p => p.id === SEED_POLL_ID)) return;
+
+  const defaultPoll = {
+    id: SEED_POLL_ID,
+    title: '나는 어떤 개발자일까? — aline.team',
+    description: '8개의 질문에 솔직하게 답하면 당신의 개발 스타일과 강점을 분석해드려요.',
+    result_mode: 'type',
+    types: {
+      explorer:  { ko:'탐험가', en:'The Explorer', icon:'🧭', color:'#FBBF24', desc:'다양한 기술과 레포지토리를 넘나드는 호기심 넘치는 개발자에요. 새로운 것에 빠르게 적응하고 폭넓은 시야로 문제를 바라봐요.', traits:['높은 민첩성','광범위한 관심사','새로운 시도','실험적 성향'], profile:{agility:88,stability:40,contribution:65,adaptability:90,consistency:35} },
+      sprinter:  { ko:'스프린터', en:'The Sprinter', icon:'⚡', color:'#F97316', desc:'짧고 강렬한 집중력으로 빠르게 결과를 만들어내는 개발자에요. 데드라인이 있을 때 진가를 발휘해요.', traits:['빠른 출시 속도','집중력 폭발','마감 강자','단기 목표 지향'], profile:{agility:90,stability:45,contribution:75,adaptability:70,consistency:30} },
+      builder:   { ko:'빌더', en:'The Builder', icon:'🏗️', color:'#34D399', desc:'안정적이고 꾸준하게 코드를 쌓아가는 개발자에요. 속도보다 품질, 화려함보다 내구성을 추구하는 타입이에요.', traits:['높은 코드 품질','장기 안정성','꾸준한 기여','체계적 접근'], profile:{agility:47,stability:91,contribution:83,adaptability:65,consistency:78} },
+      leader:    { ko:'리더', en:'The Leader', icon:'🎯', color:'#A78BFA', desc:'코드 리뷰, 멘토링, 아키텍처 설계를 통해 팀 전체의 방향을 이끄는 개발자에요.', traits:['코드 리뷰 마스터','팀 기여도 높음','아키텍처 설계','멘토링'], profile:{agility:60,stability:72,contribution:92,adaptability:75,consistency:68} },
+      keeper:    { ko:'키퍼', en:'The Keeper', icon:'🛡️', color:'#38BDF8', desc:'기존 시스템을 유지하고 보호하는 데 탁월한 개발자에요. 기술 부채를 묵묵히 갚아나가는 팀의 숨은 영웅이에요.', traits:['유지보수 전문','기술 부채 해소','코드 이해력','시스템 수호'], profile:{agility:40,stability:88,contribution:70,adaptability:60,consistency:85} },
+      fixer:     { ko:'픽서', en:'The Fixer', icon:'🔧', color:'#F87171', desc:'버그를 사냥하고 인시던트를 해결하는 것에서 희열을 느끼는 개발자에요. 위기 상황에서 가장 빛나는 타입이에요.', traits:['빠른 디버깅','문제 해결 집착','인시던트 대응','높은 집중력'], profile:{agility:75,stability:55,contribution:68,adaptability:80,consistency:50} },
+    },
+    questions: [
+      { text:'새 프로젝트에 투입됐을 때, 가장 먼저 하는 행동은?', options:[
+        {text:'바로 코드를 짜기 시작한다. 일단 돌아가게 만들고 보자.', scores:{agility:10,stability:2,contribution:5,adaptability:8,consistency:1}},
+        {text:'기존 코드베이스 전체를 꼼꼼히 읽고 구조를 파악한다.', scores:{agility:2,stability:9,contribution:6,adaptability:5,consistency:9}},
+        {text:'팀원들에게 히스토리와 아키텍처 결정 이유를 먼저 물어본다.', scores:{agility:4,stability:6,contribution:10,adaptability:6,consistency:7}},
+        {text:'문서와 이슈를 뒤져서 어디서부터 기여할 수 있는지 찾는다.', scores:{agility:6,stability:4,contribution:8,adaptability:9,consistency:4}},
+      ]},
+      { text:'마감이 이틀 남았는데 기능이 아직 반도 안 됐다. 어떻게 반응하나요?', options:[
+        {text:'오히려 흥분된다. 압박감이 있어야 집중이 잘 된다.', scores:{agility:10,stability:2,contribution:6,adaptability:7,consistency:2}},
+        {text:'냉정하게 스코프를 줄이고 최소한의 동작을 보장한다.', scores:{agility:5,stability:8,contribution:7,adaptability:8,consistency:6}},
+        {text:'팀원들에게 현황을 공유하고 도움을 요청하거나 역할을 나눈다.', scores:{agility:4,stability:5,contribution:10,adaptability:6,consistency:5}},
+        {text:'당황스럽다. 처음부터 계획대로 했다면 이런 일이 없었을 텐데.', scores:{agility:2,stability:9,contribution:4,adaptability:3,consistency:10}},
+      ]},
+      { text:'일주일에 내가 커밋을 올리는 패턴은?', options:[
+        {text:'매일 조금씩. 항상 일정한 페이스를 유지한다.', scores:{agility:4,stability:8,contribution:7,adaptability:5,consistency:10}},
+        {text:'특정 날에 몰아서. 집중하면 하루에 수십 개도 올린다.', scores:{agility:10,stability:3,contribution:7,adaptability:6,consistency:2}},
+        {text:'기능 단위로 완성될 때마다 올린다. 중간 단계는 별로 안 올린다.', scores:{agility:3,stability:9,contribution:6,adaptability:4,consistency:7}},
+        {text:'다른 사람 PR 리뷰하고 머지하는 게 더 많다.', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:6}},
+      ]},
+      { text:'버그 리포트가 들어왔을 때의 첫 반응은?', options:[
+        {text:'원인을 끝까지 파고드는 게 재밌다. 깊이 들어간다.', scores:{agility:5,stability:6,contribution:7,adaptability:7,consistency:5}},
+        {text:'일단 임시 패치로 막고, 근본 원인은 나중에 제대로 파본다.', scores:{agility:9,stability:3,contribution:6,adaptability:8,consistency:2}},
+        {text:'로그, 재현 경로, 영향 범위를 먼저 파악한다.', scores:{agility:4,stability:9,contribution:7,adaptability:6,consistency:8}},
+        {text:'버그가 난 부분을 작성한 사람과 함께 보면서 해결한다.', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:5}},
+      ]},
+      { text:'팀에서 내가 자연스럽게 맡게 되는 역할은?', options:[
+        {text:'새로운 기술 스택 도입이나 프로토타입 개발.', scores:{agility:10,stability:2,contribution:5,adaptability:9,consistency:2}},
+        {text:'아키텍처 설계와 기술 방향 결정.', scores:{agility:4,stability:8,contribution:9,adaptability:6,consistency:7}},
+        {text:'코드 품질 관리와 리팩터링.', scores:{agility:2,stability:10,contribution:7,adaptability:4,consistency:9}},
+        {text:'코드 리뷰어 또는 팀의 기술 멘토.', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:6}},
+      ]},
+      { text:'코드 리뷰할 때 가장 신경 쓰는 부분은?', options:[
+        {text:'동작하는가? 엣지 케이스는 없는가?', scores:{agility:6,stability:7,contribution:7,adaptability:5,consistency:5}},
+        {text:'더 나은 설계 방법은 없는가? 확장성은?', scores:{agility:4,stability:9,contribution:8,adaptability:6,consistency:8}},
+        {text:'새로운 접근법이 있는가? 최신 방법론은 활용했는가?', scores:{agility:9,stability:3,contribution:5,adaptability:10,consistency:2}},
+        {text:'팀원이 성장할 수 있는 피드백을 줄 수 있는가?', scores:{agility:3,stability:4,contribution:10,adaptability:5,consistency:4}},
+      ]},
+      { text:'이상적인 나의 하루 개발 루틴은?', options:[
+        {text:'오전은 딥워크, 오후는 커뮤니케이션. 패턴이 정해져 있다.', scores:{agility:4,stability:8,contribution:6,adaptability:4,consistency:10}},
+        {text:'그날그날 다르다. 재밌는 것 또는 급한 것부터 한다.', scores:{agility:10,stability:2,contribution:5,adaptability:9,consistency:1}},
+        {text:'팀 스탠드업 후 우선순위 조율하고 협업에 집중한다.', scores:{agility:4,stability:5,contribution:10,adaptability:6,consistency:6}},
+        {text:'이슈/PR 트래킹부터 시작해 안정성을 먼저 확인한다.', scores:{agility:2,stability:9,contribution:7,adaptability:4,consistency:8}},
+      ]},
+      { text:'3개월 뒤 내 코드를 본다면 어떤 상태이길 바라나요?', options:[
+        {text:'그때보다 훨씬 더 나은 방식으로 교체되어 있다. (그게 발전이다)', scores:{agility:9,stability:2,contribution:4,adaptability:10,consistency:2}},
+        {text:'그대로 돌아가고 있다. 안정성이 최고다.', scores:{agility:2,stability:10,contribution:5,adaptability:3,consistency:9}},
+        {text:'주석과 테스트가 잘 달려있어서 팀원이 이어받기 쉽다.', scores:{agility:3,stability:7,contribution:10,adaptability:5,consistency:7}},
+        {text:'새 기술이나 패턴으로 점진적으로 개선되어 있다.', scores:{agility:7,stability:6,contribution:6,adaptability:8,consistency:5}},
+      ]},
+    ],
+    settings: { steps:8, show_results:true, allow_multiple:false },
+    status: 'active',
+    response_count: 0,
+    created_by: 'system',
+    created_at: '2026-01-01T00:00:00.000Z',
+    updated_at: '2026-01-01T00:00:00.000Z',
+  };
+
+  polls.push(defaultPoll);
+  savePolls(polls);
+  console.log('  [Seed] Developer type quiz poll added');
+}
+
+seedDefaultPoll();
+
 // -- Start -------------------------------------------------------------------
 app.listen(PORT, () => {
   console.log(`\n  Poll Platform running at http://localhost:${PORT}`);

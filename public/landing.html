@@ -502,6 +502,124 @@ a:hover { text-decoration: underline; }
   .btn { width: 100%; max-width: 300px; justify-content: center; }
 }
 
+/* ── Releases ─────────────────────────────── */
+.releases {
+  padding: 120px 24px;
+}
+
+.releases-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.releases-header h2 {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.releases-header p {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.timeline {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.release {
+  position: relative;
+  padding-left: 32px;
+  padding-bottom: 40px;
+  border-left: 2px solid var(--border);
+}
+
+.release:last-child { padding-bottom: 0; }
+
+.release::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+.release.latest::before {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(52,211,153,0.4);
+}
+
+.release-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.release-version {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.release-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.release-tag {
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.tag-latest {
+  background: rgba(52,211,153,0.15);
+  color: var(--green);
+}
+
+.tag-initial {
+  background: rgba(88,166,255,0.12);
+  color: var(--accent);
+}
+
+.release-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.release-changes {
+  list-style: none;
+  padding: 0;
+}
+
+.release-changes li {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+  padding-left: 16px;
+  position: relative;
+}
+
+.release-changes li::before {
+  content: '>';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+}
+
 /* ── Lang Toggle ──────────────────────────── */
 .lang-toggle {
   display: flex;
@@ -539,6 +657,7 @@ a:hover { text-decoration: underline; }
       <a href="#features">Features</a>
       <a href="#setup">Setup</a>
       <a href="#ai">AI</a>
+      <a href="#releases">Releases</a>
       <a href="https://github.com/extory/poll" target="_blank">GitHub</a>
       <a href="/admin" class="nav-btn">Admin</a>
       <div class="lang-toggle" id="lang-toggle"></div>
@@ -712,6 +831,73 @@ a:hover { text-decoration: underline; }
   </div>
 </section>
 
+<!-- Releases -->
+<section class="releases" id="releases">
+  <div class="releases-header">
+    <h2>Release Notes</h2>
+    <p data-i18n="releases_sub">업데이트 히스토리</p>
+  </div>
+
+  <div class="timeline">
+    <div class="release latest">
+      <div class="release-header">
+        <span class="release-version">v2.2.0</span>
+        <span class="release-date">2026-04-04</span>
+        <span class="release-tag tag-latest">LATEST</span>
+      </div>
+      <div class="release-title" data-i18n="rel_220_title">다국어 지원 (한국어/영어)</div>
+      <ul class="release-changes">
+        <li data-i18n="rel_220_1">모든 페이지에 KO/EN 언어 전환 토글 추가</li>
+        <li data-i18n="rel_220_2">브라우저 언어 자동 감지, localStorage 기반 설정 유지</li>
+        <li data-i18n="rel_220_3">오픈소스 랜딩페이지 추가 (설치 가이드, 기능 소개, AI 설정 가이드)</li>
+      </ul>
+    </div>
+
+    <div class="release">
+      <div class="release-header">
+        <span class="release-version">v2.1.0</span>
+        <span class="release-date">2026-04-04</span>
+      </div>
+      <div class="release-title" data-i18n="rel_210_title">인증 시스템 & 어드민 보호</div>
+      <ul class="release-changes">
+        <li data-i18n="rel_210_1">이메일 로그인 (bcrypt 암호화, 세션 토큰)</li>
+        <li data-i18n="rel_210_2">최초 가입자 = Owner, 이후 초대 코드 기반 가입</li>
+        <li data-i18n="rel_210_3">폴 생성/수정/삭제, AI 생성, 숏 URL API 인증 보호</li>
+        <li data-i18n="rel_210_4">멤버 관리 및 초대 코드 발급 (Owner 전용)</li>
+      </ul>
+    </div>
+
+    <div class="release">
+      <div class="release-header">
+        <span class="release-version">v2.0.0</span>
+        <span class="release-date">2026-04-04</span>
+      </div>
+      <div class="release-title" data-i18n="rel_200_title">어드민 대시보드 & AI 통합</div>
+      <ul class="release-changes">
+        <li data-i18n="rel_200_1">어드민 대시보드 (폴 CRUD, 통계, 공유)</li>
+        <li data-i18n="rel_200_2">Claude & Gemini AI 폴 자동 생성</li>
+        <li data-i18n="rel_200_3">숏 URL 생성 및 클릭 추적</li>
+        <li data-i18n="rel_200_4">소셜 공유 (카카오톡, Twitter/X, Facebook, LinkedIn)</li>
+        <li data-i18n="rel_200_5">모바일 최적화 폴 뷰어</li>
+      </ul>
+    </div>
+
+    <div class="release">
+      <div class="release-header">
+        <span class="release-version">v1.0.0</span>
+        <span class="release-date">2026-04-04</span>
+        <span class="release-tag tag-initial">INITIAL</span>
+      </div>
+      <div class="release-title" data-i18n="rel_100_title">초기 릴리즈</div>
+      <ul class="release-changes">
+        <li data-i18n="rel_100_1">개발자 유형 진단 퀴즈 (8문항, 코사인 유사도 기반 6유형)</li>
+        <li data-i18n="rel_100_2">Express API 서버, JSON 파일 기반 데이터 저장</li>
+        <li data-i18n="rel_100_3">모바일 최적화 SPA (애니메이션, 프로그레스 바)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <!-- Footer -->
 <footer class="footer">
   <div class="footer-inner">
@@ -771,6 +957,26 @@ i18n.init({
     demo_desc: '이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 사용해보세요.',
     demo_admin: '어드민 보기',
     demo_quiz: '샘플 퀴즈 체험',
+    releases_sub: '업데이트 히스토리',
+    rel_220_title: '다국어 지원 (한국어/영어)',
+    rel_220_1: '모든 페이지에 KO/EN 언어 전환 토글 추가',
+    rel_220_2: '브라우저 언어 자동 감지, localStorage 기반 설정 유지',
+    rel_220_3: '오픈소스 랜딩페이지 추가 (설치 가이드, 기능 소개, AI 설정 가이드)',
+    rel_210_title: '인증 시스템 & 어드민 보호',
+    rel_210_1: '이메일 로그인 (bcrypt 암호화, 세션 토큰)',
+    rel_210_2: '최초 가입자 = Owner, 이후 초대 코드 기반 가입',
+    rel_210_3: '폴 생성/수정/삭제, AI 생성, 숏 URL API 인증 보호',
+    rel_210_4: '멤버 관리 및 초대 코드 발급 (Owner 전용)',
+    rel_200_title: '어드민 대시보드 & AI 통합',
+    rel_200_1: '어드민 대시보드 (폴 CRUD, 통계, 공유)',
+    rel_200_2: 'Claude & Gemini AI 폴 자동 생성',
+    rel_200_3: '숏 URL 생성 및 클릭 추적',
+    rel_200_4: '소셜 공유 (카카오톡, Twitter/X, Facebook, LinkedIn)',
+    rel_200_5: '모바일 최적화 폴 뷰어',
+    rel_100_title: '초기 릴리즈',
+    rel_100_1: '개발자 유형 진단 퀴즈 (8문항, 코사인 유사도 기반 6유형)',
+    rel_100_2: 'Express API 서버, JSON 파일 기반 데이터 저장',
+    rel_100_3: '모바일 최적화 SPA (애니메이션, 프로그레스 바)',
   },
   en: {
     hero_title_1: 'AI-Powered',
@@ -807,6 +1013,26 @@ i18n.init({
     demo_desc: 'This site runs on Poll Platform. Try it out yourself.',
     demo_admin: 'View Admin',
     demo_quiz: 'Try Sample Quiz',
+    releases_sub: 'Update History',
+    rel_220_title: 'Internationalization (Korean / English)',
+    rel_220_1: 'KO/EN language toggle on all pages',
+    rel_220_2: 'Auto-detect browser language, persist preference via localStorage',
+    rel_220_3: 'Open source landing page with setup guide, features, and AI docs',
+    rel_210_title: 'Auth System & Admin Protection',
+    rel_210_1: 'Email login (bcrypt hashing, session tokens)',
+    rel_210_2: 'First signup = Owner, invite-code-based registration after',
+    rel_210_3: 'Auth-protected poll CRUD, AI generation, and short URL APIs',
+    rel_210_4: 'Member management & invite code generation (Owner only)',
+    rel_200_title: 'Admin Dashboard & AI Integration',
+    rel_200_1: 'Admin dashboard (poll CRUD, analytics, sharing)',
+    rel_200_2: 'Claude & Gemini AI auto poll generation',
+    rel_200_3: 'Short URL creation with click tracking',
+    rel_200_4: 'Social sharing (KakaoTalk, Twitter/X, Facebook, LinkedIn)',
+    rel_200_5: 'Mobile-optimized poll viewer',
+    rel_100_title: 'Initial Release',
+    rel_100_1: 'Developer type quiz (8 questions, cosine similarity, 6 types)',
+    rel_100_2: 'Express API server with JSON file-based storage',
+    rel_100_3: 'Mobile-optimized SPA (animations, progress bar)',
   },
 }, 'lang-toggle');
 </script>

@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poll Platform — Open Source Poll & Quiz Builder</title>
+<meta name="description" content="AI 기반 오픈소스 폴/퀴즈 빌더. Claude, Gemini 연동. 무료 다운로드.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --surface2: #1C2330;
+  --border: rgba(255,255,255,0.08);
+  --text: #E6EDF3;
+  --muted: #7D8590;
+  --accent: #58A6FF;
+  --green: #34D399;
+  --orange: #F97316;
+  --purple: #A78BFA;
+  --red: #F87171;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Nav ──────────────────────────────────── */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(13,17,23,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.nav-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-links a {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+
+.nav-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--bg) !important;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* ── Sections ─────────────────────────────── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Hero ─────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-top: 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  border: 1px solid rgba(88,166,255,0.3);
+  background: rgba(88,166,255,0.06);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  margin-bottom: 32px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 8vw, 64px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.hero h1 .gradient {
+  background: linear-gradient(135deg, #58A6FF 0%, #34D399 50%, #A78BFA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-desc {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none !important;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+.btn-outline:hover { border-color: var(--accent); }
+
+.btn-github {
+  background: #24292F;
+  color: #fff;
+}
+
+.hero-tech {
+  margin-top: 48px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tech-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.tech-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ── Features ─────────────────────────────── */
+.features {
+  padding: 120px 24px;
+}
+
+.features-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.features-header h2 {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.features-header p {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  transition: border-color 0.2s;
+}
+.feature-card:hover { border-color: rgba(88,166,255,0.3); }
+
+.feature-icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.feature-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* ── Setup ────────────────────────────────── */
+.setup {
+  padding: 120px 24px;
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.setup-header h2 {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.setup-header p {
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.steps {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(88,166,255,0.12);
+  color: var(--accent);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-content h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.step-content p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.code-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-x: auto;
+  position: relative;
+}
+
+.code-block .comment { color: var(--muted); }
+.code-block .cmd { color: var(--green); }
+.code-block .flag { color: var(--orange); }
+.code-block .str { color: var(--accent); }
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── AI Section ───────────────────────────── */
+.ai-section {
+  padding: 120px 24px;
+  background: linear-gradient(180deg, transparent, rgba(88,166,255,0.03), transparent);
+}
+
+.ai-content {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ai-content h2 {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.ai-content > p {
+  font-size: 16px;
+  color: var(--muted);
+  margin-bottom: 48px;
+}
+
+.ai-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  text-align: left;
+  margin-bottom: 32px;
+}
+
+.ai-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.ai-card h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.ai-note {
+  background: var(--surface);
+  border: 1px solid rgba(52,211,153,0.2);
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.ai-note strong {
+  color: var(--green);
+}
+
+/* ── Demo ─────────────────────────────────── */
+.demo-section {
+  padding: 80px 24px;
+}
+
+.demo-content {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.demo-content h2 {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.demo-content p {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.demo-links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Footer ───────────────────────────────── */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.footer-links a {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* ── Responsive ───────────────────────────── */
+@media (max-width: 768px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .ai-cards { grid-template-columns: 1fr; }
+  .nav-links a:not(.nav-btn) { display: none; }
+  .hero h1 { font-size: 32px; }
+  .hero-desc { font-size: 15px; }
+}
+
+@media (max-width: 480px) {
+  .hero-buttons { flex-direction: column; align-items: center; }
+  .btn { width: 100%; max-width: 300px; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">POLL PLATFORM</div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#setup">Setup</a>
+      <a href="#ai">AI</a>
+      <a href="https://github.com/extory/poll" target="_blank">GitHub</a>
+      <a href="/admin" class="nav-btn">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero section">
+  <div class="hero-badge">Open Source &middot; Free &middot; Self-hosted</div>
+  <h1>
+    AI 기반<br>
+    <span class="gradient">Poll & Quiz Builder</span>
+  </h1>
+  <p class="hero-desc">
+    Claude, Gemini 등 AI로 폴을 자동 생성하거나 직접 만들 수 있는
+    오픈소스 플랫폼. 설치하고 바로 사용하세요.
+  </p>
+
+  <div class="hero-buttons">
+    <a href="https://github.com/extory/poll" target="_blank" class="btn btn-github">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <a href="#setup" class="btn btn-primary">
+      설치 가이드 보기
+    </a>
+    <a href="/admin" class="btn btn-outline">
+      데모 보기
+    </a>
+  </div>
+
+  <div class="hero-tech">
+    <div class="tech-item"><span class="tech-dot" style="background:#34D399"></span> Node.js + Express</div>
+    <div class="tech-item"><span class="tech-dot" style="background:#A78BFA"></span> Claude API</div>
+    <div class="tech-item"><span class="tech-dot" style="background:#58A6FF"></span> Gemini API</div>
+    <div class="tech-item"><span class="tech-dot" style="background:#F97316"></span> Zero Dependencies DB</div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="features-header">
+    <h2>Features</h2>
+    <p>폴 생성부터 공유까지 필요한 모든 것</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <h3>AI 폴 자동 생성</h3>
+      <p>제목과 설명만 입력하면 Claude 또는 Gemini가 질문과 선택지를 자동으로 생성합니다. AI 없이 수동으로도 만들 수 있습니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>실시간 통계</h3>
+      <p>응답이 들어올 때마다 자동 집계. 질문별 응답 비율을 차트로 바로 확인할 수 있습니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>숏 URL & 공유</h3>
+      <p>클릭 추적이 가능한 짧은 URL을 생성하고, 카카오톡/Twitter/Facebook/LinkedIn으로 바로 공유하세요.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔐</div>
+      <h3>이메일 인증 & 초대</h3>
+      <p>첫 가입자가 Owner가 됩니다. 이후 멤버는 초대 코드로만 가입 가능. 폴 참여는 인증 불필요.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <h3>모바일 최적화</h3>
+      <p>폴 참여 화면은 모바일에 최적화되어 있습니다. 어디서든 쉽게 참여할 수 있습니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚀</div>
+      <h3>설치 1분</h3>
+      <p>데이터베이스 설정 없이 JSON 파일 기반으로 동작. Node.js만 있으면 바로 시작할 수 있습니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Setup -->
+<section class="setup" id="setup">
+  <div class="setup-header">
+    <h2>Setup Guide</h2>
+    <p>3단계면 충분합니다</p>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>소스 다운로드</h3>
+        <p>GitHub에서 소스를 클론합니다.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="cmd">git clone</span> git@github.com:extory/poll.git
+<span class="cmd">cd</span> poll
+<span class="cmd">npm install</span></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>환경 설정 (선택)</h3>
+        <p>기본 포트는 4000, 커스텀이 필요하면 <code>.env</code> 파일을 만드세요.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># .env (선택사항)</span>
+<span class="flag">PORT</span>=<span class="str">4000</span>
+<span class="flag">BASE_URL</span>=<span class="str">https://your-domain.com</span></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>실행</h3>
+        <p>서버를 시작하고, <code>/admin</code>에 접속하여 첫 번째 관리자 계정을 만드세요.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="cmd">npm start</span>
+
+<span class="comment"># http://localhost:4000       랜딩 페이지</span>
+<span class="comment"># http://localhost:4000/admin  어드민 (첫 가입 = Owner)</span></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">+</div>
+      <div class="step-content">
+        <h3>프로덕션 배포 (PM2 + Nginx)</h3>
+        <p>실서버 배포 시 PM2와 Nginx 리버스 프록시를 추천합니다.</p>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># PM2로 프로세스 관리</span>
+<span class="cmd">npm install</span> <span class="flag">-g</span> pm2
+<span class="cmd">PORT</span>=4000 <span class="cmd">BASE_URL</span>=https://your-domain.com \
+  <span class="cmd">pm2 start</span> server.js <span class="flag">--name</span> poll
+<span class="cmd">pm2 save</span>
+<span class="cmd">pm2 startup</span>
+
+<span class="comment"># Nginx 리버스 프록시 (/etc/nginx/sites-available/)</span>
+<span class="comment"># server_name your-domain.com;</span>
+<span class="comment"># location / { proxy_pass http://127.0.0.1:4000; }</span>
+
+<span class="comment"># SSL (Let's Encrypt)</span>
+<span class="cmd">sudo certbot</span> <span class="flag">--nginx</span> <span class="flag">-d</span> your-domain.com</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI -->
+<section class="ai-section" id="ai">
+  <div class="ai-content">
+    <h2>AI Integration</h2>
+    <p>자신의 AI API 키를 사용하세요. AI 없이도 수동으로 폴을 만들 수 있습니다.</p>
+
+    <div class="ai-cards">
+      <div class="ai-card">
+        <h3><span style="color:var(--purple)">&#9679;</span> Claude (Anthropic)</h3>
+        <p>
+          <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요.
+          어드민 &rarr; API 설정에서 키를 입력하면 됩니다.
+        </p>
+      </div>
+      <div class="ai-card">
+        <h3><span style="color:var(--accent)">&#9679;</span> Gemini (Google)</h3>
+        <p>
+          <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>에서 API 키를 발급받으세요.
+          동일하게 어드민 설정에서 입력합니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="ai-note">
+      <strong>AI 없이도 사용 가능합니다.</strong><br>
+      어드민 대시보드에서 질문과 선택지를 직접 입력하여 폴을 수동으로 만들 수 있습니다.
+      AI는 편의 기능일 뿐, 필수가 아닙니다. API 키는 브라우저 로컬스토리지에만 저장되며 서버에 보관되지 않습니다.
+    </div>
+  </div>
+</section>
+
+<!-- Demo -->
+<section class="demo-section">
+  <div class="demo-content">
+    <h2>Demo</h2>
+    <p>이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 사용해보세요.</p>
+    <div class="demo-links">
+      <a href="/admin" class="btn btn-primary">어드민 보기</a>
+      <a href="/quiz" class="btn btn-outline">샘플 퀴즈 체험</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-links">
+      <a href="https://github.com/extory/poll" target="_blank">GitHub</a>
+      <a href="https://github.com/extory/poll/issues" target="_blank">Issues</a>
+      <a href="/admin">Admin</a>
+      <a href="https://extory.co" target="_blank">EXTORY</a>
+    </div>
+    <div class="footer-copy">
+      MIT License &middot; Built by EXTORY
+    </div>
+  </div>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const text = block.textContent.replace('Copy', '').trim();
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+</script>
+</body>
+</html>

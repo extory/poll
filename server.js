@@ -468,6 +468,116 @@ async function callChatGPT(apiKey, systemPrompt, userPrompt) {
 }
 
 // ============================================================================
+//  IMAGE GENERATION (OpenAI & Gemini only, Claude cannot generate images)
+// ============================================================================
+const IMAGES_DIR = path.join(DATA_DIR, 'images');
+if (!fs.existsSync(IMAGES_DIR)) fs.mkdirSync(IMAGES_DIR, { recursive: true });
+
+// Serve uploaded/generated images
+app.use('/images', express.static(IMAGES_DIR));
+
+app.post('/api/ai/generate-image', authMiddleware, async (req, res) => {
+  const { engine, prompt, api_key } = req.body;
+  if (!engine || !prompt || !api_key) return res.status(400).json({ error: 'engine, prompt, api_key are required' });
+
+  try {
+    let imageBuffer;
+
+    if (engine === 'chatgpt') {
+      imageBuffer = await generateImageOpenAI(api_key, prompt);
+    } else if (engine === 'gemini') {
+      imageBuffer = await generateImageGemini(api_key, prompt);
+    } else {
+      return res.status(400).json({ error: 'Image generation is only supported by ChatGPT (OpenAI) and Gemini. Claude does not support image generation.' });
+    }
+
+    // Save to file
+    const filename = `${uuidv4()}.png`;
+    fs.writeFileSync(path.join(IMAGES_DIR, filename), imageBuffer);
+
+    const imageUrl = `/images/${filename}`;
+    console.log(`[Image Generated] ${engine}: ${prompt.slice(0, 50)}... -> ${imageUrl}`);
+    res.json({ success: true, image_url: imageUrl });
+  } catch (err) {
+    console.error('[Image Generate Error]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Batch: generate images for all questions in a poll
+app.post('/api/ai/generate-poll-images', authMiddleware, async (req, res) => {
+  const { engine, api_key, questions, style } = req.body;
+  if (!engine || !api_key || !questions) return res.status(400).json({ error: 'engine, api_key, questions are required' });
+
+  if (engine === 'claude') {
+    return res.status(400).json({ error: 'Claude does not support image generation. Use ChatGPT or Gemini.' });
+  }
+
+  const styleHint = style || 'flat illustration, minimal, modern, vibrant colors, white background';
+
+  try {
+    const results = [];
+    for (const q of questions) {
+      const prompt = `Create a simple illustration for this poll question: "${q.text}". Style: ${styleHint}. No text in the image.`;
+      let imageBuffer;
+      if (engine === 'chatgpt') imageBuffer = await generateImageOpenAI(api_key, prompt);
+      else imageBuffer = await generateImageGemini(api_key, prompt);
+
+      const filename = `${uuidv4()}.png`;
+      fs.writeFileSync(path.join(IMAGES_DIR, filename), imageBuffer);
+      results.push({ question: q.text, image_url: `/images/${filename}` });
+    }
+    res.json({ success: true, images: results });
+  } catch (err) {
+    console.error('[Batch Image Error]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+async function generateImageOpenAI(apiKey, prompt) {
+  const resp = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: 'gpt-image-1',
+      prompt,
+      n: 1,
+      size: '1024x1024',
+    }),
+  });
+  if (!resp.ok) throw new Error(`OpenAI Image API error (${resp.status}): ${await resp.text()}`);
+  const data = await resp.json();
+  // gpt-image-1 returns base64
+  const b64 = data.data[0].b64_json;
+  if (b64) return Buffer.from(b64, 'base64');
+  // fallback: URL
+  const url = data.data[0].url;
+  const imgResp = await fetch(url);
+  return Buffer.from(await imgResp.arrayBuffer());
+}
+
+async function generateImageGemini(apiKey, prompt) {
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+      }),
+    }
+  );
+  if (!resp.ok) throw new Error(`Gemini Image API error (${resp.status}): ${await resp.text()}`);
+  const data = await resp.json();
+  // Find image part in response
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const imgPart = parts.find(p => p.inlineData);
+  if (!imgPart) throw new Error('Gemini did not return an image');
+  return Buffer.from(imgPart.inlineData.data, 'base64');
+}
+
+// ============================================================================
 //  SHORT URL
 // ============================================================================
 

@@ -633,11 +633,17 @@ body {
 
         <div id="questions-editor"></div>
 
-        <div style="margin-top:16px; display:flex; gap:10px;">
+        <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn btn-primary btn-lg" onclick="savePoll()" style="flex:1" data-i18n="btn_save_poll">
             폴 저장하기
           </button>
+          <button class="btn btn-green btn-lg" onclick="generateAllImages()" id="btn-gen-images" style="flex:1" data-i18n="btn_gen_images">
+            🎨 질문별 이미지 생성
+          </button>
           <button class="btn btn-lg" onclick="clearEditor()" data-i18n="btn_reset">초기화</button>
+        </div>
+        <div class="form-hint" id="image-gen-hint" style="text-align:center;margin-top:6px;display:none" data-i18n="hint_image_engine">
+          이미지 생성은 ChatGPT, Gemini만 지원합니다. (Claude 미지원)
         </div>
       </div>
     </div>
@@ -815,6 +821,11 @@ const translations = {
     placeholder_poll_desc: '간단한 설명',
     btn_save_poll: '폴 저장하기',
     btn_reset: '초기화',
+    btn_gen_images: '🎨 질문별 이미지 생성',
+    hint_image_engine: '이미지 생성은 ChatGPT, Gemini만 지원합니다. (Claude 미지원)',
+    generating_images: '이미지 생성 중...',
+    toast_images_generated: '질문별 이미지가 생성되었습니다!',
+    toast_image_fail: '이미지 생성 실패',
     editor_empty: '질문을 추가하거나 AI로 생성해보세요',
     placeholder_question: '질문 입력',
     placeholder_option: '선택지',
@@ -948,6 +959,11 @@ const translations = {
     placeholder_poll_desc: 'Brief description',
     btn_save_poll: 'Save Poll',
     btn_reset: 'Reset',
+    btn_gen_images: '🎨 Generate Images',
+    hint_image_engine: 'Image generation is only supported by ChatGPT and Gemini. (Not Claude)',
+    generating_images: 'Generating images...',
+    toast_images_generated: 'Images generated for all questions!',
+    toast_image_fail: 'Image generation failed',
     editor_empty: 'Add questions or generate with AI',
     placeholder_question: 'Enter question',
     placeholder_option: 'Option',
@@ -1304,12 +1320,20 @@ function renderQuestions() {
       </div>
     `).join('');
 
+    const imgHtml = q.image_url
+      ? `<div style="margin-bottom:10px;position:relative">
+          <img src="${q.image_url}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+          <button class="btn-remove" onclick="editingQuestions[${qi}].image_url=null;renderQuestions()" style="position:absolute;top:4px;right:4px;background:var(--bg);border-radius:50%;width:24px;height:24px">×</button>
+        </div>`
+      : '';
+
     return `
       <div class="question-item">
         <div class="question-item-header">
           <span class="question-num">Q${String(qi + 1).padStart(2, '0')}</span>
           <button class="btn-remove" onclick="removeQuestion(${qi})">🗑️</button>
         </div>
+        ${imgHtml}
         <div class="form-group">
           <input class="form-input" value="${escAttr(q.text)}"
             onchange="editingQuestions[${qi}].text=this.value"
@@ -1354,6 +1378,59 @@ function clearEditor() {
 }
 
 /* ════════════════════════════════════════════
+   IMAGE GENERATION
+════════════════════════════════════════════ */
+async function generateAllImages() {
+  if (!editingQuestions.length) return toast(i18n.t('toast_min_question'), 'error');
+  if (selectedEngine === 'claude') {
+    return toast(i18n.t('hint_image_engine'), 'error');
+  }
+
+  const questionsWithText = editingQuestions.filter(q => q.text.trim());
+  if (!questionsWithText.length) return toast(i18n.t('toast_enter_question'), 'error');
+
+  const keyFields = { claude: 'setting-claude-key', gemini: 'setting-gemini-key', chatgpt: 'setting-chatgpt-key' };
+  const apiKey = document.getElementById(keyFields[selectedEngine]).value || localStorage.getItem(`api_key_${selectedEngine}`);
+  if (!apiKey) return toast(i18n.t('toast_api_key_missing'), 'error');
+
+  const btn = document.getElementById('btn-gen-images');
+  btn.disabled = true;
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('generating_images');
+
+  try {
+    const resp = await authFetch('/api/ai/generate-poll-images', {
+      method: 'POST',
+      body: JSON.stringify({
+        engine: selectedEngine,
+        api_key: apiKey,
+        questions: questionsWithText.map(q => ({ text: q.text })),
+      }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    // Map images back to questions
+    let imgIdx = 0;
+    editingQuestions.forEach(q => {
+      if (q.text.trim() && data.images[imgIdx]) {
+        q.image_url = data.images[imgIdx].image_url;
+        imgIdx++;
+      }
+    });
+
+    renderQuestions();
+    toast(i18n.t('toast_images_generated'));
+  } catch (err) {
+    toast(i18n.t('toast_image_fail') + ': ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+/* ════════════════════════════════════════════
    SAVE POLL
 ════════════════════════════════════════════ */
 async function savePoll() {
@@ -1370,11 +1447,15 @@ async function savePoll() {
     if (validOpts.length < 2) return toast(`Q${i + 1}${i18n.t('toast_min_options')}`, 'error');
   }
 
-  // Clean
-  const questions = editingQuestions.map(q => ({
-    text: q.text.trim(),
-    options: q.options.filter(o => o.text.trim()).map(o => ({ text: o.text.trim() })),
-  }));
+  // Clean (preserve image_url if exists)
+  const questions = editingQuestions.map(q => {
+    const cleaned = {
+      text: q.text.trim(),
+      options: q.options.filter(o => o.text.trim()).map(o => ({ text: o.text.trim() })),
+    };
+    if (q.image_url) cleaned.image_url = q.image_url;
+    return cleaned;
+  });
 
   try {
     const resp = await authFetch('/api/polls', {

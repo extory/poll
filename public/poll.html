@@ -552,6 +552,9 @@ html, body {
 
     <div class="question-card">
       <div class="question-num" id="question-num">Q01</div>
+      <div id="question-image" style="display:none;margin-bottom:12px">
+        <img id="question-image-src" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px">
+      </div>
       <div class="question-text" id="question-text"></div>
     </div>
 
@@ -657,6 +660,15 @@ function renderQuestion() {
   document.getElementById('q-current').textContent = currentQ + 1;
   document.getElementById('question-num').textContent = `Q${String(currentQ + 1).padStart(2, '0')}`;
   document.getElementById('question-text').textContent = q.text;
+
+  // Show question image if available
+  const imgWrap = document.getElementById('question-image');
+  if (q.image_url) {
+    document.getElementById('question-image-src').src = q.image_url;
+    imgWrap.style.display = 'block';
+  } else {
+    imgWrap.style.display = 'none';
+  }
 
   const pct = ((currentQ) / pollData.questions.length * 100);
   document.getElementById('progress-fill').style.width = pct + '%';

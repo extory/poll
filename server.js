@@ -26,7 +26,7 @@ const INVITES_FILE = path.join(DATA_DIR, 'invites.json');
 
 // -- Middleware --------------------------------------------------------------
 app.use(express.json({ limit: '5mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');

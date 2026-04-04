@@ -378,23 +378,30 @@ html, body {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Language Toggle ─────────────────────── */
+.lang-toggle { display:flex;gap:2px;background:rgba(28,35,48,0.8);border-radius:6px;padding:2px;position:fixed;top:16px;right:16px;z-index:100; }
+.lang-btn { padding:3px 10px;border:none;border-radius:4px;background:transparent;color:#7D8590;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer; }
+.lang-btn.active { background:#58A6FF;color:#0D1117; }
 </style>
 </head>
 <body>
+
+<div class="lang-toggle" id="lang-toggle"></div>
 
 <div id="app">
 
   <!-- Loading -->
   <section class="screen active" id="screen-loading">
     <div class="loading-orb"></div>
-    <div style="color:var(--muted);font-size:14px">폴을 불러오는 중...</div>
+    <div style="color:var(--muted);font-size:14px" data-i18n="loading">폴을 불러오는 중...</div>
   </section>
 
   <!-- Error -->
   <section class="screen" id="screen-error">
     <div style="font-size:48px">😕</div>
-    <div style="font-size:18px;font-weight:700">폴을 찾을 수 없습니다</div>
-    <div style="color:var(--muted);font-size:14px">링크를 다시 확인해주세요</div>
+    <div style="font-size:18px;font-weight:700" data-i18n="error_title">폴을 찾을 수 없습니다</div>
+    <div style="color:var(--muted);font-size:14px" data-i18n="error_desc">링크를 다시 확인해주세요</div>
   </section>
 
   <!-- Intro -->
@@ -404,7 +411,7 @@ html, body {
     <p class="poll-desc" id="poll-desc-display"></p>
 
     <button class="btn-primary" onclick="startPoll()" style="max-width:320px;margin:0 auto;">
-      참여하기 <span>→</span>
+      <span data-i18n="start_btn">참여하기</span> <span>→</span>
     </button>
 
     <div class="poll-meta">
@@ -439,29 +446,30 @@ html, body {
 
   <!-- Result -->
   <section class="screen" id="screen-result">
-    <div class="result-title">참여 완료!</div>
-    <div class="result-subtitle">응답이 기록되었습니다</div>
+    <div class="result-title" data-i18n="result_title">참여 완료!</div>
+    <div class="result-subtitle" data-i18n="result_subtitle">응답이 기록되었습니다</div>
 
     <div class="result-chart" id="result-chart"></div>
 
     <div class="share-section">
-      <p>친구에게도 공유해보세요!</p>
+      <p data-i18n="share_prompt">친구에게도 공유해보세요!</p>
       <div class="share-buttons">
         <button class="share-btn" onclick="sharePoll('twitter')">Twitter / X</button>
         <button class="share-btn" onclick="sharePoll('facebook')">Facebook</button>
-        <button class="share-btn" onclick="sharePoll('copy')">🔗 링크 복사</button>
+        <button class="share-btn" onclick="sharePoll('copy')" data-i18n="share_copy">🔗 링크 복사</button>
       </div>
     </div>
 
-    <div class="footer">Powered by Poll Platform · EXTORY</div>
+    <div class="footer" data-i18n="footer">Powered by Poll Platform · EXTORY</div>
   </section>
 
 </div>
 
+<script src="/i18n.js"></script>
 <script>
 /* ════════════════════════════════════════════
    STATE
-════���═══════════════════════════════════════ */
+════════════════════════════════════════════ */
 let pollData = null;
 let currentQ = 0;
 let answers = {};
@@ -481,12 +489,8 @@ let answers = {};
     document.title = pollData.title + ' — Poll';
 
     // Fill intro
-    document.getElementById('poll-badge').textContent = `${pollData.questions.length}문항 · 참여형 폴`;
-    document.getElementById('poll-title-display').textContent = pollData.title;
-    document.getElementById('poll-desc-display').textContent = pollData.description || '지금 바로 참여해보세요!';
-    document.getElementById('poll-step-count').textContent = `❓ ${pollData.questions.length}문항`;
-    document.getElementById('poll-response-count').textContent = `📊 ${pollData.response_count || 0}명 참여`;
     document.getElementById('q-total').textContent = pollData.questions.length;
+    fillIntroTexts();
 
     showScreen('intro');
   } catch (err) {
@@ -498,6 +502,27 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
 }
+
+function fillIntroTexts() {
+  if (!pollData) return;
+  const n = pollData.questions.length;
+  document.getElementById('poll-badge').textContent = `${n}${i18n.t('unit_questions')} · ${i18n.t('poll_type')}`;
+  document.getElementById('poll-title-display').textContent = pollData.title;
+  document.getElementById('poll-desc-display').textContent = pollData.description || i18n.t('default_desc');
+  document.getElementById('poll-step-count').textContent = `❓ ${n}${i18n.t('unit_questions')}`;
+  document.getElementById('poll-response-count').textContent = `📊 ${pollData.response_count || 0}${i18n.t('unit_participants')}`;
+}
+
+// Re-apply dynamic JS texts on language change
+const _origSetLang = i18n.setLang;
+i18n.setLang = function(lang) {
+  _origSetLang(lang);
+  fillIntroTexts();
+  // Re-render current question button text if on quiz screen
+  if (pollData && document.getElementById('screen-quiz').classList.contains('active')) {
+    renderQuestion();
+  }
+};
 
 /* ════════════════════════════════════════════
    POLL FLOW
@@ -529,7 +554,7 @@ function renderQuestion() {
 
   const isLast = currentQ === pollData.questions.length - 1;
   const btn = document.getElementById('btn-next');
-  btn.innerHTML = isLast ? '결과 보기 <span>→</span>' : '다음 <span>→</span>';
+  btn.innerHTML = isLast ? `${i18n.t('view_results')} <span>→</span>` : `${i18n.t('next')} <span>→</span>`;
   btn.disabled = answers[currentQ] === undefined;
 }
 
@@ -619,7 +644,7 @@ async function submitAndShowResults() {
 ════════════════════════════════════════════ */
 function sharePoll(platform) {
   const url = window.location.href;
-  const text = `${pollData.title} - 지금 참여해보세요!`;
+  const text = `${pollData.title} - ${i18n.t('share_text')}`;
 
   switch (platform) {
     case 'twitter':
@@ -630,7 +655,7 @@ function sharePoll(platform) {
       break;
     case 'copy':
       navigator.clipboard.writeText(url);
-      alert('링크가 복사되었습니다!');
+      alert(i18n.t('link_copied'));
       break;
   }
 }
@@ -640,6 +665,50 @@ function escHtml(s) {
   d.textContent = s || '';
   return d.innerHTML;
 }
+
+/* ════════════════════════════════════════════
+   i18n INIT
+════════════════════════════════════════════ */
+i18n.init({
+  ko: {
+    loading: '폴을 불러오는 중...',
+    error_title: '폴을 찾을 수 없습니다',
+    error_desc: '링크를 다시 확인해주세요',
+    start_btn: '참여하기',
+    next: '다음',
+    view_results: '결과 보기',
+    result_title: '참여 완료!',
+    result_subtitle: '응답이 기록되었습니다',
+    share_prompt: '친구에게도 공유해보세요!',
+    share_copy: '🔗 링크 복사',
+    share_text: '지금 참여해보세요!',
+    link_copied: '링크가 복사되었습니다!',
+    footer: 'Powered by Poll Platform · EXTORY',
+    unit_questions: '문항',
+    poll_type: '참여형 폴',
+    default_desc: '지금 바로 참여해보세요!',
+    unit_participants: '명 참여',
+  },
+  en: {
+    loading: 'Loading poll...',
+    error_title: 'Poll not found',
+    error_desc: 'Please check the link and try again',
+    start_btn: 'Participate',
+    next: 'Next',
+    view_results: 'View Results',
+    result_title: 'All Done!',
+    result_subtitle: 'Your response has been recorded',
+    share_prompt: 'Share this poll with friends!',
+    share_copy: '🔗 Copy Link',
+    share_text: 'Join this poll now!',
+    link_copied: 'Link copied!',
+    footer: 'Powered by Poll Platform · EXTORY',
+    unit_questions: ' Questions',
+    poll_type: 'Interactive Poll',
+    default_desc: 'Join now and share your opinion!',
+    unit_participants: ' participated',
+  }
+}, 'lang-toggle');
 </script>
 </body>
 </html>

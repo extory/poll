@@ -193,15 +193,22 @@ body {
 
 /* Hide sections */
 .hidden { display: none; }
+
+/* Language toggle */
+.lang-toggle { display:flex;gap:2px;background:rgba(28,35,48,0.8);border-radius:6px;padding:2px;position:fixed;top:16px;right:16px;z-index:100; }
+.lang-btn { padding:3px 10px;border:none;border-radius:4px;background:transparent;color:#7D8590;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer; }
+.lang-btn.active { background:#58A6FF;color:#0D1117; }
 </style>
 </head>
 <body>
 
+<div class="lang-toggle" id="lang-toggle"></div>
+
 <div class="login-container">
   <div class="login-header">
     <div class="login-logo">POLL ADMIN</div>
-    <h1 class="login-title" id="page-title">로그인</h1>
-    <p class="login-subtitle" id="page-subtitle">어드민에 접속하려면 로그인하세요</p>
+    <h1 class="login-title" id="page-title" data-i18n="login_title">로그인</h1>
+    <p class="login-subtitle" id="page-subtitle" data-i18n="login_subtitle">어드민에 접속하려면 로그인하세요</p>
   </div>
 
   <div class="error-msg" id="error-msg"></div>
@@ -211,19 +218,20 @@ body {
   <div id="login-form">
     <div class="card">
       <div class="form-group">
-        <label class="form-label">이메일</label>
+        <label class="form-label" data-i18n="label_email">이메일</label>
         <input class="form-input" id="login-email" type="email" placeholder="admin@example.com"
           autocomplete="email">
       </div>
       <div class="form-group">
-        <label class="form-label">비밀번호</label>
-        <input class="form-input" id="login-password" type="password" placeholder="비밀번호"
+        <label class="form-label" data-i18n="label_password">비밀번호</label>
+        <input class="form-input" id="login-password" type="password"
+          data-i18n-placeholder="ph_password" placeholder="비밀번호"
           autocomplete="current-password">
       </div>
-      <button class="btn btn-primary" id="btn-login" onclick="doLogin()">로그인</button>
+      <button class="btn btn-primary" id="btn-login" data-i18n="btn_login" onclick="doLogin()">로그인</button>
     </div>
     <div class="toggle-link" id="toggle-to-signup">
-      계정이 없으신가요? <a onclick="showSignup()">가입하기</a>
+      <span data-i18n="no_account">계정이 없으신가요?</span> <a onclick="showSignup()" data-i18n="link_signup">가입하기</a>
     </div>
   </div>
 
@@ -232,40 +240,44 @@ body {
     <div class="card">
       <div id="setup-notice" class="hidden" style="margin-bottom:16px">
         <div class="owner-badge">OWNER SETUP</div>
-        <p style="font-size:13px;color:var(--muted);margin-top:8px">
+        <p style="font-size:13px;color:var(--muted);margin-top:8px" data-i18n="setup_notice">
           첫 번째 가입자는 자동으로 오너(Owner)가 됩니다.<br>
           이후 멤버는 오너의 초대 코드로만 가입할 수 있습니다.
         </p>
       </div>
 
       <div class="form-group">
-        <label class="form-label">이름</label>
-        <input class="form-input" id="signup-name" type="text" placeholder="이름"
+        <label class="form-label" data-i18n="label_name">이름</label>
+        <input class="form-input" id="signup-name" type="text"
+          data-i18n-placeholder="ph_name" placeholder="이름"
           autocomplete="name">
       </div>
       <div class="form-group">
-        <label class="form-label">이메일</label>
+        <label class="form-label" data-i18n="label_email">이메일</label>
         <input class="form-input" id="signup-email" type="email" placeholder="admin@example.com"
           autocomplete="email">
       </div>
       <div class="form-group">
-        <label class="form-label">비밀번호</label>
-        <input class="form-input" id="signup-password" type="password" placeholder="6자 이상"
+        <label class="form-label" data-i18n="label_password">비밀번호</label>
+        <input class="form-input" id="signup-password" type="password"
+          data-i18n-placeholder="ph_password_min" placeholder="6자 이상"
           autocomplete="new-password">
       </div>
       <div class="form-group" id="invite-group" class="hidden">
-        <label class="form-label">초대 코드</label>
-        <input class="form-input" id="signup-invite" type="text" placeholder="초대 코드 입력">
-        <div class="form-hint">오너로부터 받은 초대 코드를 입력하세요</div>
+        <label class="form-label" data-i18n="label_invite">초대 코드</label>
+        <input class="form-input" id="signup-invite" type="text"
+          data-i18n-placeholder="ph_invite" placeholder="초대 코드 입력">
+        <div class="form-hint" data-i18n="hint_invite">오너로부터 받은 초대 코드를 입력하세요</div>
       </div>
-      <button class="btn btn-primary" id="btn-signup" onclick="doSignup()">가입하기</button>
+      <button class="btn btn-primary" id="btn-signup" data-i18n="btn_signup" onclick="doSignup()">가입하기</button>
     </div>
     <div class="toggle-link">
-      이미 계정이 있으신가요? <a onclick="showLogin()">로그인</a>
+      <span data-i18n="has_account">이미 계정이 있으신가요?</span> <a onclick="showLogin()" data-i18n="link_login">로그인</a>
     </div>
   </div>
 </div>
 
+<script src="/i18n.js"></script>
 <script>
 let isInitialized = false;
 
@@ -324,18 +336,23 @@ let isInitialized = false;
 function showLogin() {
   document.getElementById('login-form').classList.remove('hidden');
   document.getElementById('signup-form').classList.add('hidden');
-  document.getElementById('page-title').textContent = '로그인';
-  document.getElementById('page-subtitle').textContent = '어드민에 접속하려면 로그인하세요';
+  document.getElementById('page-title').setAttribute('data-i18n', 'login_title');
+  document.getElementById('page-title').textContent = i18n.t('login_title');
+  document.getElementById('page-subtitle').setAttribute('data-i18n', 'login_subtitle');
+  document.getElementById('page-subtitle').textContent = i18n.t('login_subtitle');
   hideMessages();
 }
 
 function showSignup() {
   document.getElementById('login-form').classList.add('hidden');
   document.getElementById('signup-form').classList.remove('hidden');
-  document.getElementById('page-title').textContent = isInitialized ? '가입하기' : '초기 설정';
-  document.getElementById('page-subtitle').textContent = isInitialized
-    ? '초대 코드로 가입하세요'
-    : '첫 번째 관리자 계정을 만드세요';
+
+  const titleKey = isInitialized ? 'signup_title' : 'setup_title';
+  const subtitleKey = isInitialized ? 'signup_subtitle' : 'setup_subtitle';
+  document.getElementById('page-title').setAttribute('data-i18n', titleKey);
+  document.getElementById('page-title').textContent = i18n.t(titleKey);
+  document.getElementById('page-subtitle').setAttribute('data-i18n', subtitleKey);
+  document.getElementById('page-subtitle').textContent = i18n.t(subtitleKey);
 
   // Show/hide invite field
   if (isInitialized) {
@@ -370,11 +387,11 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
 
-  if (!email || !password) return showError('이메일과 비밀번호를 입력하세요');
+  if (!email || !password) return showError(i18n.t('err_email_password'));
 
   const btn = document.getElementById('btn-login');
   btn.disabled = true;
-  btn.innerHTML = '<span class="loading-spinner"></span> 로그인 중...';
+  btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('logging_in');
 
   try {
     const resp = await fetch('/api/auth/login', {
@@ -393,7 +410,7 @@ async function doLogin() {
     showError(err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = '로그인';
+    btn.textContent = i18n.t('btn_login');
   }
 }
 
@@ -403,12 +420,12 @@ async function doSignup() {
   const password = document.getElementById('signup-password').value;
   const invite_code = document.getElementById('signup-invite').value.trim();
 
-  if (!email || !password) return showError('이메일과 비밀번호를 입력하세요');
-  if (password.length < 6) return showError('비밀번호는 6자 이상이어야 합니다');
+  if (!email || !password) return showError(i18n.t('err_email_password'));
+  if (password.length < 6) return showError(i18n.t('err_password_length'));
 
   const btn = document.getElementById('btn-signup');
   btn.disabled = true;
-  btn.innerHTML = '<span class="loading-spinner"></span> 가입 중...';
+  btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('signing_up');
 
   try {
     const body = { email, password, name };
@@ -430,9 +447,69 @@ async function doSignup() {
     showError(err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = '가입하기';
+    btn.textContent = i18n.t('btn_signup');
   }
 }
+
+// Initialize i18n
+i18n.init({
+  ko: {
+    login_title: '로그인',
+    login_subtitle: '어드민에 접속하려면 로그인하세요',
+    signup_title: '가입하기',
+    signup_subtitle: '초대 코드로 가입하세요',
+    setup_title: '초기 설정',
+    setup_subtitle: '첫 번째 관리자 계정을 만드세요',
+    setup_notice: '첫 번째 가입자는 자동으로 오너(Owner)가 됩니다.<br>이후 멤버는 오너의 초대 코드로만 가입할 수 있습니다.',
+    label_email: '이메일',
+    label_password: '비밀번호',
+    label_name: '이름',
+    label_invite: '초대 코드',
+    ph_password: '비밀번호',
+    ph_password_min: '6자 이상',
+    ph_name: '이름',
+    ph_invite: '초대 코드 입력',
+    hint_invite: '오너로부터 받은 초대 코드를 입력하세요',
+    btn_login: '로그인',
+    btn_signup: '가입하기',
+    no_account: '계정이 없으신가요?',
+    link_signup: '가입하기',
+    has_account: '이미 계정이 있으신가요?',
+    link_login: '로그인',
+    err_email_password: '이메일과 비밀번호를 입력하세요',
+    err_password_length: '비밀번호는 6자 이상이어야 합니다',
+    logging_in: '로그인 중...',
+    signing_up: '가입 중...',
+  },
+  en: {
+    login_title: 'Login',
+    login_subtitle: 'Sign in to access the admin panel',
+    signup_title: 'Sign Up',
+    signup_subtitle: 'Sign up with an invite code',
+    setup_title: 'Initial Setup',
+    setup_subtitle: 'Create the first admin account',
+    setup_notice: 'The first user automatically becomes the Owner.<br>Additional members can only sign up with an invite code from the Owner.',
+    label_email: 'Email',
+    label_password: 'Password',
+    label_name: 'Name',
+    label_invite: 'Invite Code',
+    ph_password: 'Password',
+    ph_password_min: '6 characters or more',
+    ph_name: 'Name',
+    ph_invite: 'Enter invite code',
+    hint_invite: 'Enter the invite code you received from the Owner',
+    btn_login: 'Login',
+    btn_signup: 'Sign Up',
+    no_account: "Don't have an account?",
+    link_signup: 'Sign Up',
+    has_account: 'Already have an account?',
+    link_login: 'Login',
+    err_email_password: 'Please enter your email and password',
+    err_password_length: 'Password must be at least 6 characters',
+    logging_in: 'Logging in...',
+    signing_up: 'Signing up...',
+  }
+}, 'lang-toggle');
 </script>
 </body>
 </html>

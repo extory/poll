@@ -501,6 +501,32 @@ a:hover { text-decoration: underline; }
   .hero-buttons { flex-direction: column; align-items: center; }
   .btn { width: 100%; max-width: 300px; justify-content: center; }
 }
+
+/* ── Lang Toggle ──────────────────────────── */
+.lang-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 2px;
+  margin-left: 8px;
+}
+.lang-btn {
+  padding: 3px 10px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lang-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+}
 </style>
 </head>
 <body>
@@ -515,6 +541,7 @@ a:hover { text-decoration: underline; }
       <a href="#ai">AI</a>
       <a href="https://github.com/extory/poll" target="_blank">GitHub</a>
       <a href="/admin" class="nav-btn">Admin</a>
+      <div class="lang-toggle" id="lang-toggle"></div>
     </div>
   </div>
 </nav>
@@ -523,12 +550,11 @@ a:hover { text-decoration: underline; }
 <section class="hero section">
   <div class="hero-badge">Open Source &middot; Free &middot; Self-hosted</div>
   <h1>
-    AI 기반<br>
+    <span data-i18n="hero_title_1">AI 기반</span><br>
     <span class="gradient">Poll & Quiz Builder</span>
   </h1>
-  <p class="hero-desc">
-    Claude, Gemini 등 AI로 폴을 자동 생성하거나 직접 만들 수 있는
-    오픈소스 플랫폼. 설치하고 바로 사용하세요.
+  <p class="hero-desc" data-i18n="hero_desc">
+    Claude, Gemini 등 AI로 폴을 자동 생성하거나 직접 만들 수 있는 오픈소스 플랫폼. 설치하고 바로 사용하세요.
   </p>
 
   <div class="hero-buttons">
@@ -536,12 +562,8 @@ a:hover { text-decoration: underline; }
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       GitHub
     </a>
-    <a href="#setup" class="btn btn-primary">
-      설치 가이드 보기
-    </a>
-    <a href="/admin" class="btn btn-outline">
-      데모 보기
-    </a>
+    <a href="#setup" class="btn btn-primary" data-i18n="hero_btn_setup">설치 가이드 보기</a>
+    <a href="/admin" class="btn btn-outline" data-i18n="hero_btn_demo">데모 보기</a>
   </div>
 
   <div class="hero-tech">
@@ -556,39 +578,38 @@ a:hover { text-decoration: underline; }
 <section class="features" id="features">
   <div class="features-header">
     <h2>Features</h2>
-    <p>폴 생성부터 공유까지 필요한 모든 것</p>
+    <p data-i18n="features_sub">폴 생성부터 공유까지 필요한 모든 것</p>
   </div>
-
   <div class="features-grid">
     <div class="feature-card">
       <div class="feature-icon">🤖</div>
-      <h3>AI 폴 자동 생성</h3>
-      <p>제목과 설명만 입력하면 Claude 또는 Gemini가 질문과 선택지를 자동으로 생성합니다. AI 없이 수동으로도 만들 수 있습니다.</p>
+      <h3 data-i18n="feat_ai_title">AI 폴 자동 생성</h3>
+      <p data-i18n="feat_ai_desc">제목과 설명만 입력하면 Claude 또는 Gemini가 질문과 선택지를 자동으로 생성합니다. AI 없이 수동으로도 만들 수 있습니다.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📊</div>
-      <h3>실시간 통계</h3>
-      <p>응답이 들어올 때마다 자동 집계. 질문별 응답 비율을 차트로 바로 확인할 수 있습니다.</p>
+      <h3 data-i18n="feat_stats_title">실시간 통계</h3>
+      <p data-i18n="feat_stats_desc">응답이 들어올 때마다 자동 집계. 질문별 응답 비율을 차트로 바로 확인할 수 있습니다.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🔗</div>
-      <h3>숏 URL & 공유</h3>
-      <p>클릭 추적이 가능한 짧은 URL을 생성하고, 카카오톡/Twitter/Facebook/LinkedIn으로 바로 공유하세요.</p>
+      <h3 data-i18n="feat_share_title">숏 URL & 공유</h3>
+      <p data-i18n="feat_share_desc">클릭 추적이 가능한 짧은 URL을 생성하고, 카카오톡/Twitter/Facebook/LinkedIn으로 바로 공유하세요.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🔐</div>
-      <h3>이메일 인증 & 초대</h3>
-      <p>첫 가입자가 Owner가 됩니다. 이후 멤버는 초대 코드로만 가입 가능. 폴 참여는 인증 불필요.</p>
+      <h3 data-i18n="feat_auth_title">이메일 인증 & 초대</h3>
+      <p data-i18n="feat_auth_desc">첫 가입자가 Owner가 됩니다. 이후 멤버는 초대 코드로만 가입 가능. 폴 참여는 인증 불필요.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">📱</div>
-      <h3>모바일 최적화</h3>
-      <p>폴 참여 화면은 모바일에 최적화되어 있습니다. 어디서든 쉽게 참여할 수 있습니다.</p>
+      <h3 data-i18n="feat_mobile_title">모바일 최적화</h3>
+      <p data-i18n="feat_mobile_desc">폴 참여 화면은 모바일에 최적화되어 있습니다. 어디서든 쉽게 참여할 수 있습니다.</p>
     </div>
     <div class="feature-card">
       <div class="feature-icon">🚀</div>
-      <h3>설치 1분</h3>
-      <p>데이터베이스 설정 없이 JSON 파일 기반으로 동작. Node.js만 있으면 바로 시작할 수 있습니다.</p>
+      <h3 data-i18n="feat_easy_title">설치 1분</h3>
+      <p data-i18n="feat_easy_desc">데이터베이스 설정 없이 JSON 파일 기반으로 동작. Node.js만 있으면 바로 시작할 수 있습니다.</p>
     </div>
   </div>
 </section>
@@ -597,65 +618,56 @@ a:hover { text-decoration: underline; }
 <section class="setup" id="setup">
   <div class="setup-header">
     <h2>Setup Guide</h2>
-    <p>3단계면 충분합니다</p>
+    <p data-i18n="setup_sub">3단계면 충분합니다</p>
   </div>
-
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-content">
-        <h3>소스 다운로드</h3>
-        <p>GitHub에서 소스를 클론합니다.</p>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <h3 data-i18n="step1_title">소스 다운로드</h3>
+        <p data-i18n="step1_desc">GitHub에서 소스를 클론합니다.</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
 <span class="cmd">git clone</span> git@github.com:extory/poll.git
 <span class="cmd">cd</span> poll
 <span class="cmd">npm install</span></div>
       </div>
     </div>
-
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-content">
-        <h3>환경 설정 (선택)</h3>
-        <p>기본 포트는 4000, 커스텀이 필요하면 <code>.env</code> 파일을 만드세요.</p>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-<span class="comment"># .env (선택사항)</span>
+        <h3 data-i18n="step2_title">환경 설정 (선택)</h3>
+        <p data-i18n="step2_desc">기본 포트는 4000, 커스텀이 필요하면 .env 파일을 만드세요.</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># .env (optional)</span>
 <span class="flag">PORT</span>=<span class="str">4000</span>
 <span class="flag">BASE_URL</span>=<span class="str">https://your-domain.com</span></div>
       </div>
     </div>
-
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-content">
-        <h3>실행</h3>
-        <p>서버를 시작하고, <code>/admin</code>에 접속하여 첫 번째 관리자 계정을 만드세요.</p>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <h3 data-i18n="step3_title">실행</h3>
+        <p data-i18n="step3_desc">서버를 시작하고, /admin에 접속하여 첫 번째 관리자 계정을 만드세요.</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
 <span class="cmd">npm start</span>
 
-<span class="comment"># http://localhost:4000       랜딩 페이지</span>
-<span class="comment"># http://localhost:4000/admin  어드민 (첫 가입 = Owner)</span></div>
+<span class="comment"># http://localhost:4000       Landing</span>
+<span class="comment"># http://localhost:4000/admin  Admin (first signup = Owner)</span></div>
       </div>
     </div>
-
     <div class="step">
       <div class="step-num">+</div>
       <div class="step-content">
-        <h3>프로덕션 배포 (PM2 + Nginx)</h3>
-        <p>실서버 배포 시 PM2와 Nginx 리버스 프록시를 추천합니다.</p>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-<span class="comment"># PM2로 프로세스 관리</span>
+        <h3 data-i18n="step4_title">프로덕션 배포 (PM2 + Nginx)</h3>
+        <p data-i18n="step4_desc">실서버 배포 시 PM2와 Nginx 리버스 프록시를 추천합니다.</p>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># PM2 process manager</span>
 <span class="cmd">npm install</span> <span class="flag">-g</span> pm2
 <span class="cmd">PORT</span>=4000 <span class="cmd">BASE_URL</span>=https://your-domain.com \
   <span class="cmd">pm2 start</span> server.js <span class="flag">--name</span> poll
-<span class="cmd">pm2 save</span>
-<span class="cmd">pm2 startup</span>
+<span class="cmd">pm2 save && pm2 startup</span>
 
-<span class="comment"># Nginx 리버스 프록시 (/etc/nginx/sites-available/)</span>
+<span class="comment"># Nginx reverse proxy</span>
 <span class="comment"># server_name your-domain.com;</span>
 <span class="comment"># location / { proxy_pass http://127.0.0.1:4000; }</span>
 
@@ -670,29 +682,20 @@ a:hover { text-decoration: underline; }
 <section class="ai-section" id="ai">
   <div class="ai-content">
     <h2>AI Integration</h2>
-    <p>자신의 AI API 키를 사용하세요. AI 없이도 수동으로 폴을 만들 수 있습니다.</p>
-
+    <p data-i18n="ai_sub">자신의 AI API 키를 사용하세요. AI 없이도 수동으로 폴을 만들 수 있습니다.</p>
     <div class="ai-cards">
       <div class="ai-card">
         <h3><span style="color:var(--purple)">&#9679;</span> Claude (Anthropic)</h3>
-        <p>
-          <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요.
-          어드민 &rarr; API 설정에서 키를 입력하면 됩니다.
-        </p>
+        <p data-i18n="ai_claude_desc"><a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요. 어드민 &rarr; API 설정에서 키를 입력하면 됩니다.</p>
       </div>
       <div class="ai-card">
         <h3><span style="color:var(--accent)">&#9679;</span> Gemini (Google)</h3>
-        <p>
-          <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>에서 API 키를 발급받으세요.
-          동일하게 어드민 설정에서 입력합니다.
-        </p>
+        <p data-i18n="ai_gemini_desc"><a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>에서 API 키를 발급받으세요. 동일하게 어드민 설정에서 입력합니다.</p>
       </div>
     </div>
-
     <div class="ai-note">
-      <strong>AI 없이도 사용 가능합니다.</strong><br>
-      어드민 대시보드에서 질문과 선택지를 직접 입력하여 폴을 수동으로 만들 수 있습니다.
-      AI는 편의 기능일 뿐, 필수가 아닙니다. API 키는 브라우저 로컬스토리지에만 저장되며 서버에 보관되지 않습니다.
+      <strong data-i18n="ai_note_title">AI 없이도 사용 가능합니다.</strong><br>
+      <span data-i18n="ai_note_desc">어드민 대시보드에서 질문과 선택지를 직접 입력하여 폴을 수동으로 만들 수 있습니다. AI는 편의 기능일 뿐, 필수가 아닙니다. API 키는 브라우저 로컬스토리지에만 저장되며 서버에 보관되지 않습니다.</span>
     </div>
   </div>
 </section>
@@ -701,10 +704,10 @@ a:hover { text-decoration: underline; }
 <section class="demo-section">
   <div class="demo-content">
     <h2>Demo</h2>
-    <p>이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 사용해보세요.</p>
+    <p data-i18n="demo_desc">이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 사용해보세요.</p>
     <div class="demo-links">
-      <a href="/admin" class="btn btn-primary">어드민 보기</a>
-      <a href="/quiz" class="btn btn-outline">샘플 퀴즈 체험</a>
+      <a href="/admin" class="btn btn-primary" data-i18n="demo_admin">어드민 보기</a>
+      <a href="/quiz" class="btn btn-outline" data-i18n="demo_quiz">샘플 퀴즈 체험</a>
     </div>
   </div>
 </section>
@@ -718,20 +721,94 @@ a:hover { text-decoration: underline; }
       <a href="/admin">Admin</a>
       <a href="https://extory.co" target="_blank">EXTORY</a>
     </div>
-    <div class="footer-copy">
-      MIT License &middot; Built by EXTORY
-    </div>
+    <div class="footer-copy">MIT License &middot; Built by EXTORY</div>
   </div>
 </footer>
 
+<script src="/i18n.js"></script>
 <script>
 function copyCode(btn) {
   const block = btn.parentElement;
-  const text = block.textContent.replace('Copy', '').trim();
+  const text = block.textContent.replace('Copy','').replace('Copied!','').trim();
   navigator.clipboard.writeText(text);
   btn.textContent = 'Copied!';
   setTimeout(() => btn.textContent = 'Copy', 2000);
 }
+
+i18n.init({
+  ko: {
+    hero_title_1: 'AI 기반',
+    hero_desc: 'Claude, Gemini 등 AI로 폴을 자동 생성하거나 직접 만들 수 있는 오픈소스 플랫폼. 설치하고 바로 사용하세요.',
+    hero_btn_setup: '설치 가이드 보기',
+    hero_btn_demo: '데모 보기',
+    features_sub: '폴 생성부터 공유까지 필요한 모든 것',
+    feat_ai_title: 'AI 폴 자동 생성',
+    feat_ai_desc: '제목과 설명만 입력하면 Claude 또는 Gemini가 질문과 선택지를 자동으로 생성합니다. AI 없이 수동으로도 만들 수 있습니다.',
+    feat_stats_title: '실시간 통계',
+    feat_stats_desc: '응답이 들어올 때마다 자동 집계. 질문별 응답 비율을 차트로 바로 확인할 수 있습니다.',
+    feat_share_title: '숏 URL & 공유',
+    feat_share_desc: '클릭 추적이 가능한 짧은 URL을 생성하고, 카카오톡/Twitter/Facebook/LinkedIn으로 바로 공유하세요.',
+    feat_auth_title: '이메일 인증 & 초대',
+    feat_auth_desc: '첫 가입자가 Owner가 됩니다. 이후 멤버는 초대 코드로만 가입 가능. 폴 참여는 인증 불필요.',
+    feat_mobile_title: '모바일 최적화',
+    feat_mobile_desc: '폴 참여 화면은 모바일에 최적화되어 있습니다. 어디서든 쉽게 참여할 수 있습니다.',
+    feat_easy_title: '설치 1분',
+    feat_easy_desc: '데이터베이스 설정 없이 JSON 파일 기반으로 동작. Node.js만 있으면 바로 시작할 수 있습니다.',
+    setup_sub: '3단계면 충분합니다',
+    step1_title: '소스 다운로드',
+    step1_desc: 'GitHub에서 소스를 클론합니다.',
+    step2_title: '환경 설정 (선택)',
+    step2_desc: '기본 포트는 4000, 커스텀이 필요하면 .env 파일을 만드세요.',
+    step3_title: '실행',
+    step3_desc: '서버를 시작하고, /admin에 접속하여 첫 번째 관리자 계정을 만드세요.',
+    step4_title: '프로덕션 배포 (PM2 + Nginx)',
+    step4_desc: '실서버 배포 시 PM2와 Nginx 리버스 프록시를 추천합니다.',
+    ai_sub: '자신의 AI API 키를 사용하세요. AI 없이도 수동으로 폴을 만들 수 있습니다.',
+    ai_claude_desc: '<a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>에서 API 키를 발급받으세요. 어드민 &rarr; API 설정에서 키를 입력하면 됩니다.',
+    ai_gemini_desc: '<a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>에서 API 키를 발급받으세요. 동일하게 어드민 설정에서 입력합니다.',
+    ai_note_title: 'AI 없이도 사용 가능합니다.',
+    ai_note_desc: '어드민 대시보드에서 질문과 선택지를 직접 입력하여 폴을 수동으로 만들 수 있습니다. AI는 편의 기능일 뿐, 필수가 아닙니다. API 키는 브라우저 로컬스토리지에만 저장되며 서버에 보관되지 않습니다.',
+    demo_desc: '이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 사용해보세요.',
+    demo_admin: '어드민 보기',
+    demo_quiz: '샘플 퀴즈 체험',
+  },
+  en: {
+    hero_title_1: 'AI-Powered',
+    hero_desc: 'An open source platform to auto-generate polls with Claude or Gemini, or build them manually. Install and start using right away.',
+    hero_btn_setup: 'Setup Guide',
+    hero_btn_demo: 'Live Demo',
+    features_sub: 'Everything you need from creation to sharing',
+    feat_ai_title: 'AI Poll Generation',
+    feat_ai_desc: 'Just enter a title and description — Claude or Gemini will auto-generate questions and options. Works without AI too.',
+    feat_stats_title: 'Real-time Analytics',
+    feat_stats_desc: 'Responses are aggregated in real-time. View per-question response rates instantly.',
+    feat_share_title: 'Short URLs & Sharing',
+    feat_share_desc: 'Create trackable short URLs and share directly to KakaoTalk, Twitter/X, Facebook, or LinkedIn.',
+    feat_auth_title: 'Email Auth & Invites',
+    feat_auth_desc: 'First signup becomes Owner. Additional members join via invite codes only. Poll participation requires no login.',
+    feat_mobile_title: 'Mobile Optimized',
+    feat_mobile_desc: 'Poll participation screens are optimized for mobile. Easy to respond from anywhere.',
+    feat_easy_title: '1-Minute Setup',
+    feat_easy_desc: 'JSON file-based storage — no database setup required. Just Node.js and you\'re ready.',
+    setup_sub: 'Just 3 steps',
+    step1_title: 'Download Source',
+    step1_desc: 'Clone the source from GitHub.',
+    step2_title: 'Configure (Optional)',
+    step2_desc: 'Default port is 4000. Create a .env file to customize.',
+    step3_title: 'Run',
+    step3_desc: 'Start the server and visit /admin to create the first admin account.',
+    step4_title: 'Production Deploy (PM2 + Nginx)',
+    step4_desc: 'For production, we recommend PM2 and Nginx reverse proxy.',
+    ai_sub: 'Use your own AI API keys. You can also create polls manually without AI.',
+    ai_claude_desc: 'Get your API key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>. Enter it in Admin &rarr; API Settings.',
+    ai_gemini_desc: 'Get your API key from <a href="https://aistudio.google.com/" target="_blank">Google AI Studio</a>. Enter it in Admin settings.',
+    ai_note_title: 'Works without AI.',
+    ai_note_desc: 'You can manually create polls by entering questions and options directly in the admin dashboard. AI is a convenience feature, not a requirement. API keys are stored only in browser localStorage — never on the server.',
+    demo_desc: 'This site runs on Poll Platform. Try it out yourself.',
+    demo_admin: 'View Admin',
+    demo_quiz: 'Try Sample Quiz',
+  },
+}, 'lang-toggle');
 </script>
 </body>
 </html>

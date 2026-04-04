@@ -631,6 +631,21 @@ body {
           <textarea class="form-textarea" id="poll-description" rows="2" data-i18n-placeholder="placeholder_poll_desc" placeholder="간단한 설명"></textarea>
         </div>
 
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:10px" data-i18n="label_cta">CTA 링크 버튼 (선택)</div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <input class="form-input" id="cta-label-ko" data-i18n-placeholder="ph_cta_label_ko" placeholder="버튼 텍스트 (한국어)">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <input class="form-input" id="cta-label-en" data-i18n-placeholder="ph_cta_label_en" placeholder="Button text (English)">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;margin-bottom:0">
+            <input class="form-input" id="cta-url" placeholder="https://example.com" type="url">
+          </div>
+        </div>
+
         <div id="questions-editor"></div>
 
         <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -822,6 +837,9 @@ const translations = {
     btn_save_poll: '폴 저장하기',
     btn_reset: '초기화',
     btn_gen_images: '🎨 질문별 이미지 생성',
+    label_cta: 'CTA 링크 버튼 (선택)',
+    ph_cta_label_ko: '버튼 텍스트 (한국어)',
+    ph_cta_label_en: '버튼 텍스트 (English)',
     hint_image_engine: '이미지 생성은 ChatGPT, Gemini만 지원합니다. (Claude 미지원)',
     generating_images: '이미지 생성 중...',
     toast_images_generated: '질문별 이미지가 생성되었습니다!',
@@ -960,6 +978,9 @@ const translations = {
     btn_save_poll: 'Save Poll',
     btn_reset: 'Reset',
     btn_gen_images: '🎨 Generate Images',
+    label_cta: 'CTA Link Button (Optional)',
+    ph_cta_label_ko: 'Button text (Korean)',
+    ph_cta_label_en: 'Button text (English)',
     hint_image_engine: 'Image generation is only supported by ChatGPT and Gemini. (Not Claude)',
     generating_images: 'Generating images...',
     toast_images_generated: 'Images generated for all questions!',
@@ -1374,6 +1395,9 @@ function clearEditor() {
   editingQuestions = [];
   document.getElementById('poll-title').value = '';
   document.getElementById('poll-description').value = '';
+  document.getElementById('cta-label-ko').value = '';
+  document.getElementById('cta-label-en').value = '';
+  document.getElementById('cta-url').value = '';
   renderQuestions();
 }
 
@@ -1457,10 +1481,24 @@ async function savePoll() {
     return cleaned;
   });
 
+  // Build CTA if provided
+  const ctaLabelKo = document.getElementById('cta-label-ko').value.trim();
+  const ctaLabelEn = document.getElementById('cta-label-en').value.trim();
+  const ctaUrl = document.getElementById('cta-url').value.trim();
+  let cta = null;
+  if (ctaUrl) {
+    cta = { url: ctaUrl };
+    if (ctaLabelKo) cta.label_ko = ctaLabelKo;
+    if (ctaLabelEn) cta.label = ctaLabelEn;
+  }
+
   try {
+    const body = { title, description, questions };
+    if (cta) body.cta = cta;
+
     const resp = await authFetch('/api/polls', {
       method: 'POST',
-      body: JSON.stringify({ title, description, questions }),
+      body: JSON.stringify(body),
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error);

@@ -572,6 +572,10 @@ html, body {
 
     <div class="result-chart" id="result-chart"></div>
 
+    <div id="result-cta" style="display:none;margin-bottom:16px">
+      <a id="result-cta-link" href="#" target="_blank" class="btn-primary" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;padding:16px"></a>
+    </div>
+
     <div class="share-section">
       <p data-i18n="share_prompt">친구에게도 공유해보세요!</p>
       <div class="share-buttons">
@@ -622,6 +626,20 @@ let answers = {};
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
+  if (name === 'result') renderCTA();
+}
+
+function renderCTA() {
+  const ctaWrap = document.getElementById('result-cta');
+  const ctaLink = document.getElementById('result-cta-link');
+  if (!pollData?.cta?.url) { ctaWrap.style.display = 'none'; return; }
+
+  const lang = i18n.getLang();
+  const label = (lang === 'ko' && pollData.cta.label_ko) ? pollData.cta.label_ko : (pollData.cta.label || pollData.cta.label_ko || 'Learn More');
+  ctaLink.href = pollData.cta.url;
+  ctaLink.textContent = label;
+  if (pollData.cta.color) ctaLink.style.background = pollData.cta.color;
+  ctaWrap.style.display = 'block';
 }
 
 function fillIntroTexts() {

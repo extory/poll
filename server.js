@@ -60,6 +60,7 @@ db.exec(`
     settings TEXT DEFAULT '{}',
     result_mode TEXT,
     types TEXT,
+    cta TEXT,
     status TEXT NOT NULL DEFAULT 'active',
     response_count INTEGER NOT NULL DEFAULT 0,
     created_by TEXT DEFAULT 'system',
@@ -92,6 +93,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 `);
 
+// Migration: add cta column if missing (for existing DBs)
+try { db.exec('ALTER TABLE polls ADD COLUMN cta TEXT'); } catch {}
+
+
 // -- Middleware --------------------------------------------------------------
 app.use(express.json({ limit: '5mb' }));
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
@@ -121,6 +126,7 @@ function parsePoll(row) {
     questions: JSON.parse(row.questions),
     settings: JSON.parse(row.settings || '{}'),
     types: row.types ? JSON.parse(row.types) : undefined,
+    cta: row.cta ? JSON.parse(row.cta) : undefined,
   };
 }
 
@@ -252,16 +258,17 @@ app.get('/api/polls/:id', (req, res) => {
 });
 
 app.post('/api/polls', authMiddleware, (req, res) => {
-  const { title, description, questions, settings, result_mode, types } = req.body;
+  const { title, description, questions, settings, result_mode, types, cta } = req.body;
   if (!title || !questions || !questions.length) return res.status(400).json({ error: 'title and questions are required' });
 
   const id = uuidv4();
   const s = { steps: questions.length, show_results: true, allow_multiple: false, ...settings };
 
-  db.prepare(`INSERT INTO polls (id, title, description, questions, settings, result_mode, types, created_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(
+  db.prepare(`INSERT INTO polls (id, title, description, questions, settings, result_mode, types, cta, created_by)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
     id, title, description || '', JSON.stringify(questions), JSON.stringify(s),
-    result_mode || null, types ? JSON.stringify(types) : null, req.user.id
+    result_mode || null, types ? JSON.stringify(types) : null,
+    cta ? JSON.stringify(cta) : null, req.user.id
   );
 
   const poll = parsePoll(db.prepare('SELECT * FROM polls WHERE id = ?').get(id));
@@ -273,7 +280,7 @@ app.put('/api/polls/:id', authMiddleware, (req, res) => {
   const existing = db.prepare('SELECT * FROM polls WHERE id = ?').get(req.params.id);
   if (!existing) return res.status(404).json({ error: 'Poll not found' });
 
-  const { title, description, questions, settings, status, result_mode, types } = req.body;
+  const { title, description, questions, settings, status, result_mode, types, cta } = req.body;
   const updates = [];
   const params = [];
 
@@ -288,6 +295,7 @@ app.put('/api/polls/:id', authMiddleware, (req, res) => {
   if (status) { updates.push('status = ?'); params.push(status); }
   if (result_mode !== undefined) { updates.push('result_mode = ?'); params.push(result_mode); }
   if (types !== undefined) { updates.push('types = ?'); params.push(types ? JSON.stringify(types) : null); }
+  if (cta !== undefined) { updates.push('cta = ?'); params.push(cta ? JSON.stringify(cta) : null); }
 
   updates.push("updated_at = datetime('now')");
   params.push(req.params.id);
@@ -701,8 +709,15 @@ function seedDefaultPoll() {
     fixer:     { ko:'픽서', en:'The Fixer', icon:'🔧', color:'#F87171', desc:'버그를 사냥하고 인시던트를 해결하는 것에서 희열을 느끼는 개발자에요. 위기 상황에서 가장 빛나는 타입이에요.', traits:['빠른 디버깅','문제 해결 집착','인시던트 대응','높은 집중력'], profile:{agility:75,stability:55,contribution:68,adaptability:80,consistency:50} },
   };
 
-  db.prepare(`INSERT INTO polls (id, title, description, questions, settings, result_mode, types, created_by, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+  const cta = {
+    url: 'https://alineteam.kr',
+    label_ko: '더 자세한 개발자 프로필 알아보기 →',
+    label: 'Learn more about your developer profile →',
+    color: 'linear-gradient(135deg, #2563EB, #1E40AF)',
+  };
+
+  db.prepare(`INSERT INTO polls (id, title, description, questions, settings, result_mode, types, cta, created_by, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
     'aline-developer-type-quiz',
     '나는 어떤 개발자일까? — aline.team',
     '8개의 질문에 솔직하게 답하면 당신의 개발 스타일과 강점을 분석해드려요.',
@@ -710,6 +725,7 @@ function seedDefaultPoll() {
     JSON.stringify({ steps: 8, show_results: true, allow_multiple: false }),
     'type',
     JSON.stringify(types),
+    JSON.stringify(cta),
     'system',
     '2026-01-01T00:00:00.000Z'
   );

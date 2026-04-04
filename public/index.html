@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>나는 어떤 개발자일까? — aline.team</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+:root {
+  --bg:        #0D1117;
+  --surface:   #161B22;
+  --surface2:  #1C2330;
+  --border:    rgba(255,255,255,0.08);
+  --text:      #E6EDF3;
+  --muted:     #7D8590;
+  --accent:    #58A6FF;
+
+  /* Type colors */
+  --explorer:  #FBBF24;
+  --sprinter:  #F97316;
+  --builder:   #34D399;
+  --leader:    #A78BFA;
+  --keeper:    #38BDF8;
+  --fixer:     #F87171;
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --shadow:    0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* ══════════════════════════════════════════
+   RESET & BASE
+══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════
+   ANIMATED BACKGROUND CANVAS
+══════════════════════════════════════════ */
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+/* ══════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════ */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ══════════════════════════════════════════
+   SCREENS
+══════════════════════════════════════════ */
+.screen {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100dvh;
+  padding: 0 20px 40px;
+}
+.screen.active { display: flex; }
+
+/* ══════════════════════════════════════════
+   INTRO SCREEN
+══════════════════════════════════════════ */
+#screen-intro {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  padding-top: 60px;
+}
+
+.intro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(88,166,255,0.35);
+  background: rgba(88,166,255,0.08);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  margin-bottom: 28px;
+}
+.intro-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.intro-title {
+  font-size: clamp(30px, 8vw, 42px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+.intro-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, #58A6FF 0%, #34D399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.intro-desc {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 320px;
+  margin: 0 auto 36px;
+}
+
+.type-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 44px;
+}
+.type-pill {
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1.5px solid transparent;
+}
+
+.intro-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+.intro-meta::before {
+  content: '🔒';
+  font-size: 11px;
+}
+
+/* ══════════════════════════════════════════
+   QUIZ SCREEN
+══════════════════════════════════════════ */
+#screen-quiz {
+  padding-top: 24px;
+  gap: 0;
+}
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+}
+
+.quiz-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.quiz-count span { color: var(--text); font-weight: 700; }
+
+.quiz-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+/* Progress bar */
+.progress-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 36px;
+  flex-shrink: 0;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #34D399);
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Question card */
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.question-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.question-text {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+}
+
+/* Options */
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.option-btn {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+.option-btn::before {
+  content: attr(data-key);
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.18s ease;
+  line-height: 26px;
+  text-align: center;
+}
+
+.option-btn:active { transform: scale(0.98); }
+
+.option-btn.selected {
+  border-color: var(--accent);
+  background: rgba(88,166,255,0.08);
+}
+.option-btn.selected::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.option-btn.correct {
+  border-color: #34D399;
+  background: rgba(52,211,153,0.08);
+  pointer-events: none;
+}
+.option-btn.correct::before {
+  background: #34D399;
+  border-color: #34D399;
+  color: var(--bg);
+}
+
+.option-text { flex: 1; }
+
+/* Ripple */
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(88,166,255,0.2);
+  transform: scale(0);
+  animation: ripple-out 0.5s ease-out;
+  pointer-events: none;
+}
+@keyframes ripple-out {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* Next button */
+.quiz-nav {
+  margin-top: 20px;
+  flex-shrink: 0;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  border: none;
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+.btn-primary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none !important;
+}
+.btn-primary:not(:disabled):active { transform: scale(0.98); }
+.btn-primary .arrow { transition: transform 0.2s; }
+.btn-primary:not(:disabled):hover .arrow { transform: translateX(4px); }
+
+/* ══════════════════════════════════════════
+   LOADING SCREEN
+══════════════════════════════════════════ */
+#screen-loading {
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  text-align: center;
+}
+
+.loading-orb {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #58A6FF, #34D399, #A78BFA, #58A6FF);
+  animation: spin 1.2s linear infinite;
+  position: relative;
+}
+.loading-orb::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-size: 16px;
+  color: var(--muted);
+}
+.loading-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  animation: fade-pulse 1.4s ease-in-out infinite;
+}
+@keyframes fade-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ══════════════════════════════════════════
+   RESULT SCREEN
+══════════════════════════════════════════ */
+#screen-result {
+  padding-top: 32px;
+  align-items: stretch;
+  gap: 0;
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 28px;
+  animation: slide-up 0.6s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.result-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.result-reveal {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.result-type-name {
+  font-size: clamp(36px, 10vw, 52px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.result-type-eng {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin-bottom: 20px;
+}
+
+/* Big type icon card */
+.result-icon-card {
+  margin: 0 auto 28px;
+  width: 120px; height: 120px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  animation: pop-in 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+  position: relative;
+  overflow: hidden;
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.5) rotate(-10deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0); }
+}
+.result-icon-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(255,255,255,0.15);
+}
+
+/* Type description card */
+.result-desc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  margin-bottom: 16px;
+  animation: slide-up 0.6s cubic-bezier(0.4,0,0.2,1) 0.3s both;
+}
+
+.result-desc-card p {
+  font-size: 14px;
+  line-height: 1.75;
+  color: #C9D1D9;
+}
+
+.result-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.trait-chip {
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1.5px solid transparent;
+}
+
+/* Radar / score bars */
+.score-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  margin-bottom: 16px;
+  animation: slide-up 0.6s cubic-bezier(0.4,0,0.2,1) 0.4s both;
+}
+
+.score-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 18px;
+  font-family: 'Space Mono', monospace;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.score-row:last-child { margin-bottom: 0; }
+
+.score-label {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.score-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  width: 0%;
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+}
+
+.score-val {
+  width: 32px;
+  text-align: right;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* Share / CTA card */
+.cta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 20px;
+  margin-bottom: 16px;
+  animation: slide-up 0.6s cubic-bezier(0.4,0,0.2,1) 0.5s both;
+  text-align: center;
+}
+
+.cta-card p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.btn-cta {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.18s;
+  border: none;
+  margin-bottom: 10px;
+}
+.btn-cta:last-child { margin-bottom: 0; }
+.btn-cta:active { transform: scale(0.97); }
+
+.btn-cta-primary {
+  color: #fff;
+}
+.btn-cta-secondary {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+
+.save-indicator {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: #34D399;
+  text-align: center;
+  display: none;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+}
+.save-indicator.show { display: flex; }
+.save-indicator::before {
+  content: '●';
+  font-size: 8px;
+  animation: blink 1.4s infinite;
+}
+
+/* Footer credit */
+.result-footer {
+  text-align: center;
+  padding: 20px 0 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  opacity: 0.5;
+  letter-spacing: 0.06em;
+  animation: slide-up 0.6s cubic-bezier(0.4,0,0.2,1) 0.6s both;
+}
+
+/* ══════════════════════════════════════════
+   UTILITY ANIMATIONS
+══════════════════════════════════════════ */
+.fade-in {
+  animation: fade-in 0.4s ease both;
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.question-exit {
+  animation: q-exit 0.25s ease-in both;
+}
+@keyframes q-exit {
+  to { opacity: 0; transform: translateX(-24px); }
+}
+
+.question-enter {
+  animation: q-enter 0.3s cubic-bezier(0.4,0,0.2,1) both;
+}
+@keyframes q-enter {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ══════════════════════════════════════════
+   CONFETTI OVERLAY
+══════════════════════════════════════════ */
+#confetti-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+
+<!-- Animated background -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="confetti-canvas"></canvas>
+
+<div id="app">
+
+  <!-- ① INTRO ─────────────────────────────── -->
+  <section class="screen active" id="screen-intro">
+    <div class="intro-badge">aline.team · 개발자 유형 진단</div>
+    <h1 class="intro-title">나는 어떤<br><em>개발자</em>일까?</h1>
+    <p class="intro-desc">
+      8개의 질문에 솔직하게 답하면<br>
+      당신의 개발 스타일과 강점을 분석해드려요.
+    </p>
+
+    <div class="type-pills" id="type-pills"></div>
+
+    <button class="btn-primary" onclick="startQuiz()" style="max-width:320px;margin:0 auto;">
+      진단 시작하기
+      <span class="arrow">→</span>
+    </button>
+
+    <div class="intro-meta">코드를 수집하거나 저장하지 않습니다</div>
+  </section>
+
+  <!-- ② QUIZ ──────────────────────────────── -->
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-header">
+      <div class="quiz-count">
+        <span id="q-current">1</span> / <span id="q-total">8</span>
+      </div>
+      <div class="quiz-logo">aline.team</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="question-card" id="question-card">
+      <div class="question-num" id="question-num">Q01</div>
+      <div class="question-text" id="question-text"></div>
+    </div>
+
+    <div class="options-list" id="options-list"></div>
+
+    <div class="quiz-nav">
+      <button class="btn-primary" id="btn-next" onclick="nextQuestion()" disabled>
+        다음 <span class="arrow">→</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ③ LOADING ────────────────────────────── -->
+  <section class="screen" id="screen-loading">
+    <div class="loading-orb"></div>
+    <div class="loading-text">당신의 개발자 유형을 분석하는 중...</div>
+    <div class="loading-sub" id="loading-sub">ANALYZING PATTERNS</div>
+  </section>
+
+  <!-- ④ RESULT ─────────────────────────────── -->
+  <section class="screen" id="screen-result">
+    <div class="result-header">
+      <div class="result-eyebrow">당신의 개발자 유형은</div>
+      <div class="result-icon-card" id="result-icon-card"></div>
+      <div class="result-reveal">짜잔! 당신은</div>
+      <div class="result-type-name" id="result-type-name"></div>
+      <div class="result-type-eng" id="result-type-eng"></div>
+    </div>
+
+    <div class="result-desc-card" id="result-desc-card">
+      <p id="result-desc-text"></p>
+      <div class="result-traits" id="result-traits"></div>
+    </div>
+
+    <div class="score-card" id="score-card">
+      <div class="score-card-title">개발자 특성 분석</div>
+      <div class="score-row">
+        <div class="score-label">Agility</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="bar-agility"></div></div>
+        <div class="score-val" id="val-agility">0</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Stability</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="bar-stability"></div></div>
+        <div class="score-val" id="val-stability">0</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Contribution</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="bar-contribution"></div></div>
+        <div class="score-val" id="val-contribution">0</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Adaptability</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="bar-adaptability"></div></div>
+        <div class="score-val" id="val-adaptability">0</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Consistency</div>
+        <div class="score-bar-wrap"><div class="score-bar-fill" id="bar-consistency"></div></div>
+        <div class="score-val" id="val-consistency">0</div>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <p>Git 커밋 데이터로 더 정확한 프로필을 확인하고<br>배지를 다운로드해보세요.</p>
+      <a href="https://aline.team/sign-up" class="btn-cta btn-cta-primary" id="btn-goto-aline"
+         target="_blank">
+        aline.team에서 정확히 분석하기 →
+      </a>
+      <button class="btn-cta btn-cta-secondary" onclick="shareResult()">
+        결과 공유하기
+      </button>
+      <button class="btn-cta btn-cta-secondary" onclick="restartQuiz()">
+        다시 진단하기
+      </button>
+      <div class="save-indicator" id="save-indicator">결과가 저장되었습니다</div>
+    </div>
+
+    <div class="result-footer">Powered by aline.team · EXTORY © 2026</div>
+  </section>
+
+</div><!-- #app -->
+
+<script>
+/* ════════════════════════════════════════════
+   DATA: 6 DEVELOPER TYPES
+   Scores represent natural tendency profiles
+   based on aline.team's 5-trait system:
+   agility, stability, contribution, adaptability, consistency
+════════════════════════════════════════════ */
+const TYPES = {
+  explorer: {
+    ko: '탐험가',
+    en: 'The Explorer',
+    icon: '🧭',
+    color: '#FBBF24',
+    bgGradient: 'linear-gradient(135deg, #78350F, #92400E)',
+    desc: '다양한 기술과 레포지토리를 넘나드는 호기심 넘치는 개발자에요. 새로운 것에 빠르게 적응하고 폭넓은 시야로 문제를 바라봐요. 깊이보다 넓이, 안정보다 도전을 선호하는 타입이에요.',
+    traits: ['높은 민첩성', '광범위한 관심사', '새로운 시도', '실험적 성향'],
+    profile: { agility:88, stability:40, contribution:65, adaptability:90, consistency:35 },
+    cta_bg: 'linear-gradient(135deg, #D97706, #B45309)',
+  },
+  sprinter: {
+    ko: '스프린터',
+    en: 'The Sprinter',
+    icon: '⚡',
+    color: '#F97316',
+    bgGradient: 'linear-gradient(135deg, #7C2D12, #9A3412)',
+    desc: '짧고 강렬한 집중력으로 빠르게 결과를 만들어내는 개발자에요. 데드라인이 있을 때 진가를 발휘하고, 높은 속도로 기능을 출시하는 것을 즐겨요. 쉬는 시간과 폭발적인 집중이 반복되는 리듬을 가졌어요.',
+    traits: ['빠른 출시 속도', '집중력 폭발', '마감 강자', '단기 목표 지향'],
+    profile: { agility:90, stability:45, contribution:75, adaptability:70, consistency:30 },
+    cta_bg: 'linear-gradient(135deg, #EA580C, #C2410C)',
+  },
+  builder: {
+    ko: '빌더',
+    en: 'The Builder',
+    icon: '🏗️',
+    color: '#34D399',
+    bgGradient: 'linear-gradient(135deg, #064E3B, #065F46)',
+    desc: '안정적이고 꾸준하게 코드를 쌓아가는 개발자에요. 한번 만든 코드가 여러 번의 리팩터링을 거쳐도 살아남는 견고함을 자랑해요. 속도보다 품질, 화려함보다 내구성을 추구하는 타입이에요.',
+    traits: ['높은 코드 품질', '장기 안정성', '꾸준한 기여', '체계적 접근'],
+    profile: { agility:47, stability:91, contribution:83, adaptability:65, consistency:78 },
+    cta_bg: 'linear-gradient(135deg, #059669, #047857)',
+  },
+  leader: {
+    ko: '리더',
+    en: 'The Leader',
+    icon: '🎯',
+    color: '#A78BFA',
+    bgGradient: 'linear-gradient(135deg, #2E1065, #3B0764)',
+    desc: '코드 리뷰, 멘토링, 아키텍처 설계를 통해 팀 전체의 방향을 이끄는 개발자에요. 혼자 빠르게 만드는 것보다 팀이 잘 성장하도록 돕는 것에서 보람을 느껴요. 기술적 리더십과 커뮤니케이션 능력이 뛰어나요.',
+    traits: ['코드 리뷰 마스터', '팀 기여도 높음', '아키텍처 설계', '멘토링'],
+    profile: { agility:60, stability:72, contribution:92, adaptability:75, consistency:68 },
+    cta_bg: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
+  },
+  keeper: {
+    ko: '키퍼',
+    en: 'The Keeper',
+    icon: '🛡️',
+    color: '#38BDF8',
+    bgGradient: 'linear-gradient(135deg, #0C4A6E, #075985)',
+    desc: '기존 시스템을 유지하고 보호하는 데 탁월한 개발자에요. 다른 사람이 만든 코드를 읽고 개선하는 것을 두려워하지 않으며, 기술 부채를 묵묵히 갚아나가는 팀의 숨은 영웅이에요.',
+    traits: ['유지보수 전문', '기술 부채 해소', '코드 이해력', '시스템 수호'],
+    profile: { agility:40, stability:88, contribution:70, adaptability:60, consistency:85 },
+    cta_bg: 'linear-gradient(135deg, #0284C7, #0369A1)',
+  },
+  fixer: {
+    ko: '픽서',
+    en: 'The Fixer',
+    icon: '🔧',
+    color: '#F87171',
+    bgGradient: 'linear-gradient(135deg, #7F1D1D, #991B1B)',
+    desc: '버그를 사냥하고 인시던트를 해결하는 것에서 희열을 느끼는 개발자에요. 복잡한 문제를 파고드는 집요함과 빠른 원인 분석 능력이 강점이에요. 위기 상황에서 가장 빛나는 타입이에요.',
+    traits: ['빠른 디버깅', '문제 해결 집착', '인시던트 대응', '높은 집중력'],
+    profile: { agility:75, stability:55, contribution:68, adaptability:80, consistency:50 },
+    cta_bg: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+  },
+};
+
+/* ════════════════════════════════════════════
+   DATA: 8 QUESTIONS
+   Each option scores the 5 traits differently.
+   Scoring matrix: { agility, stability, contribution, adaptability, consistency }
+   Total possible per trait: ~80-100 (8 questions × ~10 pts max)
+════════════════════════════════════════════ */
+const QUESTIONS = [
+  {
+    id: 'q1',
+    text: '새 프로젝트에 투입됐을 때, 가장 먼저 하는 행동은?',
+    options: [
+      { key:'A', text:'바로 코드를 짜기 시작한다. 일단 돌아가게 만들고 보자.',
+        scores:{ agility:10, stability:2, contribution:5, adaptability:8, consistency:1 } },
+      { key:'B', text:'기존 코드베이스 전체를 꼼꼼히 읽고 구조를 파악한다.',
+        scores:{ agility:2, stability:9, contribution:6, adaptability:5, consistency:9 } },
+      { key:'C', text:'팀원들에게 히스토리와 아키텍처 결정 이유를 먼저 물어본다.',
+        scores:{ agility:4, stability:6, contribution:10, adaptability:6, consistency:7 } },
+      { key:'D', text:'문서와 이슈를 뒤져서 어디서부터 기여할 수 있는지 찾는다.',
+        scores:{ agility:6, stability:4, contribution:8, adaptability:9, consistency:4 } },
+    ]
+  },
+  {
+    id: 'q2',
+    text: '마감이 이틀 남았는데 기능이 아직 반도 안 됐다. 어떻게 반응하나요?',
+    options: [
+      { key:'A', text:'오히려 흥분된다. 압박감이 있어야 집중이 잘 된다.',
+        scores:{ agility:10, stability:2, contribution:6, adaptability:7, consistency:2 } },
+      { key:'B', text:'냉정하게 스코프를 줄이고 최소한의 동작을 보장한다.',
+        scores:{ agility:5, stability:8, contribution:7, adaptability:8, consistency:6 } },
+      { key:'C', text:'팀원들에게 현황을 공유하고 도움을 요청하거나 역할을 나눈다.',
+        scores:{ agility:4, stability:5, contribution:10, adaptability:6, consistency:5 } },
+      { key:'D', text:'당황스럽다. 처음부터 계획대로 했다면 이런 일이 없었을 텐데.',
+        scores:{ agility:2, stability:9, contribution:4, adaptability:3, consistency:10 } },
+    ]
+  },
+  {
+    id: 'q3',
+    text: '일주일에 내가 커밋을 올리는 패턴은?',
+    options: [
+      { key:'A', text:'매일 조금씩. 항상 일정한 페이스를 유지한다.',
+        scores:{ agility:4, stability:8, contribution:7, adaptability:5, consistency:10 } },
+      { key:'B', text:'특정 날에 몰아서. 집중하면 하루에 수십 개도 올린다.',
+        scores:{ agility:10, stability:3, contribution:7, adaptability:6, consistency:2 } },
+      { key:'C', text:'기능 단위로 완성될 때마다 올린다. 중간 단계는 별로 안 올린다.',
+        scores:{ agility:3, stability:9, contribution:6, adaptability:4, consistency:7 } },
+      { key:'D', text:'다른 사람 PR 리뷰하고 머지하는 게 더 많다.',
+        scores:{ agility:3, stability:5, contribution:10, adaptability:5, consistency:6 } },
+    ]
+  },
+  {
+    id: 'q4',
+    text: '버그 리포트가 들어왔을 때의 첫 반응은?',
+    options: [
+      { key:'A', text:'원인을 끝까지 파고드는 게 재밌다. 깊이 들어간다.',
+        scores:{ agility:5, stability:6, contribution:7, adaptability:7, consistency:5 } },
+      { key:'B', text:'일단 임시 패치로 막고, 근본 원인은 나중에 제대로 파본다.',
+        scores:{ agility:9, stability:3, contribution:6, adaptability:8, consistency:2 } },
+      { key:'C', text:'로그, 재현 경로, 영향 범위를 먼저 파악한다.',
+        scores:{ agility:4, stability:9, contribution:7, adaptability:6, consistency:8 } },
+      { key:'D', text:'버그가 난 부분을 작성한 사람과 함께 보면서 해결한다.',
+        scores:{ agility:3, stability:5, contribution:10, adaptability:5, consistency:5 } },
+    ]
+  },
+  {
+    id: 'q5',
+    text: '팀에서 내가 자연스럽게 맡게 되는 역할은?',
+    options: [
+      { key:'A', text:'새로운 기술 스택 도입이나 프로토타입 개발.',
+        scores:{ agility:10, stability:2, contribution:5, adaptability:9, consistency:2 } },
+      { key:'B', text:'아키텍처 설계와 기술 방향 결정.',
+        scores:{ agility:4, stability:8, contribution:9, adaptability:6, consistency:7 } },
+      { key:'C', text:'코드 품질 관리와 리팩터링.',
+        scores:{ agility:2, stability:10, contribution:7, adaptability:4, consistency:9 } },
+      { key:'D', text:'코드 리뷰어 또는 팀의 기술 멘토.',
+        scores:{ agility:3, stability:5, contribution:10, adaptability:5, consistency:6 } },
+    ]
+  },
+  {
+    id: 'q6',
+    text: '코드 리뷰할 때 가장 신경 쓰는 부분은?',
+    options: [
+      { key:'A', text:'동작하는가? 엣지 케이스는 없는가?',
+        scores:{ agility:6, stability:7, contribution:7, adaptability:5, consistency:5 } },
+      { key:'B', text:'더 나은 설계 방법은 없는가? 확장성은?',
+        scores:{ agility:4, stability:9, contribution:8, adaptability:6, consistency:8 } },
+      { key:'C', text:'새로운 접근법이 있는가? 최신 방법론은 활용했는가?',
+        scores:{ agility:9, stability:3, contribution:5, adaptability:10, consistency:2 } },
+      { key:'D', text:'팀원이 성장할 수 있는 피드백을 줄 수 있는가?',
+        scores:{ agility:3, stability:4, contribution:10, adaptability:5, consistency:4 } },
+    ]
+  },
+  {
+    id: 'q7',
+    text: '이상적인 나의 하루 개발 루틴은?',
+    options: [
+      { key:'A', text:'오전은 딥워크, 오후는 커뮤니케이션. 패턴이 정해져 있다.',
+        scores:{ agility:4, stability:8, contribution:6, adaptability:4, consistency:10 } },
+      { key:'B', text:'그날그날 다르다. 재밌는 것 또는 급한 것부터 한다.',
+        scores:{ agility:10, stability:2, contribution:5, adaptability:9, consistency:1 } },
+      { key:'C', text:'팀 스탠드업 후 우선순위 조율하고 협업에 집중한다.',
+        scores:{ agility:4, stability:5, contribution:10, adaptability:6, consistency:6 } },
+      { key:'D', text:'이슈/PR 트래킹부터 시작해 안정성을 먼저 확인한다.',
+        scores:{ agility:2, stability:9, contribution:7, adaptability:4, consistency:8 } },
+    ]
+  },
+  {
+    id: 'q8',
+    text: '3개월 뒤 내 코드를 본다면 어떤 상태이길 바라나요?',
+    options: [
+      { key:'A', text:'그때보다 훨씬 더 나은 방식으로 교체되어 있다. (그게 발전이다)',
+        scores:{ agility:9, stability:2, contribution:4, adaptability:10, consistency:2 } },
+      { key:'B', text:'그대로 돌아가고 있다. 안정성이 최고다.',
+        scores:{ agility:2, stability:10, contribution:5, adaptability:3, consistency:9 } },
+      { key:'C', text:'주석과 테스트가 잘 달려있어서 팀원이 이어받기 쉽다.',
+        scores:{ agility:3, stability:7, contribution:10, adaptability:5, consistency:7 } },
+      { key:'D', text:'새 기술이나 패턴으로 점진적으로 개선되어 있다.',
+        scores:{ agility:7, stability:6, contribution:6, adaptability:8, consistency:5 } },
+    ]
+  },
+];
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let currentQ   = 0;
+let answers    = {};
+let sessionId  = crypto.randomUUID();
+let finalType  = null;
+let finalScores= null;
+
+/* ════════════════════════════════════════════
+   BACKGROUND CANVAS — flowing git branches
+════════════════════════════════════════════ */
+(function initBg() {
+  const canvas = document.getElementById('bg-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, lines;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    initLines();
+  }
+
+  function initLines() {
+    lines = Array.from({ length: 18 }, (_, i) => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.3,
+      len: 60 + Math.random() * 120,
+      opacity: 0.08 + Math.random() * 0.12,
+      hue: [210, 160, 270, 30, 200][i % 5],
+      dots: Array.from({ length: 3 }, () => Math.random()),
+    }));
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    lines.forEach(l => {
+      l.x += l.vx;
+      l.y += l.vy;
+      if (l.x < -200) l.x = W + 100;
+      if (l.x > W + 200) l.x = -100;
+      if (l.y < -200) l.y = H + 100;
+      if (l.y > H + 200) l.y = -100;
+
+      ctx.beginPath();
+      ctx.moveTo(l.x, l.y);
+      ctx.lineTo(l.x + l.len, l.y + l.len * 0.4);
+      ctx.strokeStyle = `hsla(${l.hue},70%,60%,${l.opacity})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // branch dot
+      l.dots.forEach(d => {
+        const bx = l.x + l.len * d;
+        const by = l.y + l.len * 0.4 * d;
+        ctx.beginPath();
+        ctx.arc(bx, by, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${l.hue},80%,70%,${l.opacity * 1.8})`;
+        ctx.fill();
+      });
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  draw();
+})();
+
+/* ════════════════════════════════════════════
+   CONFETTI
+════════════════════════════════════════════ */
+function launchConfetti(color) {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = Array.from({ length: 80 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -10,
+    vx: (Math.random() - 0.5) * 4,
+    vy: 2 + Math.random() * 4,
+    size: 4 + Math.random() * 6,
+    color: [color, '#fff', '#58A6FF', '#34D399'][Math.floor(Math.random()*4)],
+    angle: Math.random() * 360,
+    spin: (Math.random() - 0.5) * 5,
+    life: 1,
+  }));
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += 0.1;
+      p.angle += p.spin;
+      p.life -= 0.008;
+      if (p.life <= 0 || p.y > canvas.height) return;
+      alive = true;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.5);
+      ctx.restore();
+    });
+    if (alive) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  animate();
+}
+
+/* ════════════════════════════════════════════
+   INTRO — type pills
+════════════════════════════════════════════ */
+(function renderPills() {
+  const wrap = document.getElementById('type-pills');
+  Object.values(TYPES).forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'type-pill';
+    el.textContent = t.icon + ' ' + t.ko;
+    el.style.cssText = `color:${t.color};border-color:${t.color}33;background:${t.color}11`;
+    wrap.appendChild(el);
+  });
+})();
+
+/* ════════════════════════════════════════════
+   SCREEN HELPERS
+════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ════════════════════════════════════════════
+   QUIZ LOGIC
+════════════════════════════════════════════ */
+function startQuiz() {
+  currentQ  = 0;
+  answers   = {};
+  sessionId = crypto.randomUUID();
+  showScreen('screen-quiz');
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  const q = QUESTIONS[idx];
+  document.getElementById('q-current').textContent = idx + 1;
+  document.getElementById('q-total').textContent   = QUESTIONS.length;
+  document.getElementById('progress-fill').style.width = `${(idx / QUESTIONS.length) * 100}%`;
+  document.getElementById('question-num').textContent = `Q${String(idx + 1).padStart(2,'0')}`;
+
+  const card = document.getElementById('question-card');
+  card.classList.remove('question-enter');
+  void card.offsetWidth; // reflow
+  card.classList.add('question-enter');
+  document.getElementById('question-text').textContent = q.text;
+
+  const list = document.getElementById('options-list');
+  list.classList.remove('question-enter');
+  void list.offsetWidth;
+  list.classList.add('question-enter');
+  list.innerHTML = '';
+
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className   = 'option-btn';
+    btn.dataset.key = opt.key;
+    btn.innerHTML   = `<span class="option-text">${opt.text}</span>`;
+
+    // Restore previously selected answer
+    if (answers[q.id] === opt.key) btn.classList.add('selected');
+
+    btn.addEventListener('click', (e) => {
+      // Ripple
+      const rect = btn.getBoundingClientRect();
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      const size = Math.max(btn.offsetWidth, btn.offsetHeight);
+      ripple.style.cssText = `width:${size}px;height:${size}px;
+        left:${e.clientX-rect.left-size/2}px;
+        top:${e.clientY-rect.top-size/2}px`;
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+
+      // Select
+      list.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      answers[q.id] = opt.key;
+      document.getElementById('btn-next').disabled = false;
+    });
+
+    list.appendChild(btn);
+  });
+
+  document.getElementById('btn-next').disabled = !answers[q.id];
+}
+
+function nextQuestion() {
+  if (!answers[QUESTIONS[currentQ].id]) return;
+
+  const card = document.getElementById('question-card');
+  const list = document.getElementById('options-list');
+  card.classList.add('question-exit');
+  list.classList.add('question-exit');
+
+  setTimeout(() => {
+    card.classList.remove('question-exit');
+    list.classList.remove('question-exit');
+
+    currentQ++;
+    if (currentQ >= QUESTIONS.length) {
+      showLoading();
+    } else {
+      renderQuestion(currentQ);
+    }
+  }, 240);
+}
+
+/* ════════════════════════════════════════════
+   SCORING ENGINE
+════════════════════════════════════════════ */
+function calculateResult() {
+  const totals = { agility:0, stability:0, contribution:0, adaptability:0, consistency:0 };
+
+  QUESTIONS.forEach(q => {
+    const selectedKey = answers[q.id];
+    const opt = q.options.find(o => o.key === selectedKey);
+    if (!opt) return;
+    Object.keys(totals).forEach(trait => {
+      totals[trait] += opt.scores[trait] || 0;
+    });
+  });
+
+  // Normalize to 0-100
+  const maxPerTrait = QUESTIONS.length * 10; // 8 * 10 = 80
+  const scores = {};
+  Object.keys(totals).forEach(t => {
+    scores[t] = Math.round((totals[t] / maxPerTrait) * 100);
+  });
+
+  // Match to best type using cosine similarity against type profiles
+  let bestType = 'builder';
+  let bestSim  = -Infinity;
+
+  Object.entries(TYPES).forEach(([typeKey, typeData]) => {
+    const profile = typeData.profile;
+    let dot = 0, magA = 0, magB = 0;
+    Object.keys(scores).forEach(trait => {
+      dot  += scores[trait] * profile[trait];
+      magA += scores[trait] ** 2;
+      magB += profile[trait] ** 2;
+    });
+    const sim = dot / (Math.sqrt(magA) * Math.sqrt(magB));
+    if (sim > bestSim) { bestSim = sim; bestType = typeKey; }
+  });
+
+  return { type: bestType, scores };
+}
+
+/* ════════════════════════════════════════════
+   LOADING → RESULT
+════════════════════════════════════════════ */
+function showLoading() {
+  showScreen('screen-loading');
+
+  const msgs = [
+    'ANALYZING COMMIT PATTERNS',
+    'SCORING AGILITY TRAITS',
+    'EVALUATING STABILITY',
+    'MATCHING DEVELOPER TYPE',
+    'GENERATING PROFILE...',
+  ];
+  let mi = 0;
+  const sub = document.getElementById('loading-sub');
+  const interval = setInterval(() => {
+    sub.textContent = msgs[++mi % msgs.length];
+  }, 550);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    const { type, scores } = calculateResult();
+    finalType   = type;
+    finalScores = scores;
+    showResult(type, scores);
+    saveResult(type, scores);
+  }, 2800);
+}
+
+/* ════════════════════════════════════════════
+   RENDER RESULT
+════════════════════════════════════════════ */
+function showResult(typeKey, scores) {
+  const t = TYPES[typeKey];
+
+  // Icon card
+  const iconCard = document.getElementById('result-icon-card');
+  iconCard.textContent = t.icon;
+  iconCard.style.background = t.bgGradient;
+
+  // Names
+  document.getElementById('result-type-name').textContent = t.ko;
+  document.getElementById('result-type-name').style.color = t.color;
+  document.getElementById('result-type-eng').textContent  = t.en;
+
+  // Description
+  document.getElementById('result-desc-text').textContent = t.desc;
+
+  // Traits
+  const traitsWrap = document.getElementById('result-traits');
+  traitsWrap.innerHTML = '';
+  t.traits.forEach(tr => {
+    const chip = document.createElement('span');
+    chip.className = 'trait-chip';
+    chip.textContent = tr;
+    chip.style.cssText = `color:${t.color};border-color:${t.color}44;background:${t.color}11`;
+    traitsWrap.appendChild(chip);
+  });
+
+  // CTA button
+  document.getElementById('btn-goto-aline').style.background = t.cta_bg;
+
+  showScreen('screen-result');
+
+  // Animate score bars after paint
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      ['agility','stability','contribution','adaptability','consistency'].forEach(trait => {
+        const val = scores[trait];
+        document.getElementById(`bar-${trait}`).style.width = `${val}%`;
+        document.getElementById(`bar-${trait}`).style.background = t.color;
+        document.getElementById(`val-${trait}`).textContent = val;
+      });
+    }, 400);
+  });
+
+  // Confetti!
+  setTimeout(() => launchConfetti(t.color), 200);
+}
+
+/* ════════════════════════════════════════════
+   SAVE TO SERVER (JSON → MySQL-ready)
+════════════════════════════════════════════ */
+async function saveResult(typeKey, scores) {
+  const payload = {
+    session_id:  sessionId,
+    result_type: typeKey,
+    scores,
+    answers,
+  };
+
+  try {
+    const res = await fetch('/api/results', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      console.log('[Aline Quiz] Saved:', data);
+      const indicator = document.getElementById('save-indicator');
+      indicator.classList.add('show');
+    }
+  } catch (err) {
+    // Server not running — graceful degradation
+    console.warn('[Aline Quiz] Server not available, result not saved:', err.message);
+    // localStorage fallback
+    try {
+      const prev = JSON.parse(localStorage.getItem('aline_quiz_results') || '[]');
+      prev.push({ ...payload, created_at: new Date().toISOString() });
+      localStorage.setItem('aline_quiz_results', JSON.stringify(prev));
+      console.log('[Aline Quiz] Saved to localStorage as fallback');
+    } catch {}
+  }
+}
+
+/* ════════════════════════════════════════════
+   SHARE
+════════════════════════════════════════════ */
+async function shareResult() {
+  const t = TYPES[finalType];
+  const text = `나는 ${t.ko} (${t.en}) 개발자에요!\n\n${t.desc.slice(0,60)}...\n\n당신의 유형은? 👉 aline.team`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: '나의 개발자 유형', text });
+    } catch {}
+  } else {
+    await navigator.clipboard.writeText(text);
+    alert('결과가 클립보드에 복사됐어요!');
+  }
+}
+
+function restartQuiz() {
+  showScreen('screen-intro');
+}
+
+/* ════════════════════════════════════════════
+   KEYBOARD SUPPORT
+════════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('screen-quiz').classList.contains('active')) return;
+  const keyMap = { '1':'A', '2':'B', '3':'C', '4':'D' };
+  const optKey = keyMap[e.key] || e.key.toUpperCase();
+  const btn = document.querySelector(`.option-btn[data-key="${optKey}"]`);
+  if (btn) btn.click();
+  if (e.key === 'Enter') {
+    const next = document.getElementById('btn-next');
+    if (!next.disabled) nextQuestion();
+  }
+});
+</script>
+</body>
+</html>

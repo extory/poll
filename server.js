@@ -609,6 +609,44 @@ app.get('/s/:code', (req, res) => {
 });
 
 // ============================================================================
+//  RELEASE NOTES (from git log)
+// ============================================================================
+const { execSync } = require('child_process');
+
+app.get('/api/releases', (req, res) => {
+  try {
+    const log = execSync(
+      'git log --pretty=format:"%H||%ai||%s" --no-merges -50',
+      { cwd: __dirname, encoding: 'utf-8', timeout: 5000 }
+    );
+
+    const commits = log.trim().split('\n').filter(Boolean).map(line => {
+      const [hash, date, message] = line.split('||');
+      return { hash: hash.slice(0, 7), date: date.slice(0, 10), message };
+    });
+
+    // Group by date
+    const grouped = {};
+    commits.forEach(c => {
+      if (!grouped[c.date]) grouped[c.date] = [];
+      grouped[c.date].push(c);
+    });
+
+    const releases = Object.entries(grouped)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([date, items], idx) => ({
+        date,
+        latest: idx === 0,
+        commits: items,
+      }));
+
+    res.json(releases);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read git log' });
+  }
+});
+
+// ============================================================================
 //  PAGE ROUTES
 // ============================================================================
 

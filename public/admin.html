@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poll Admin — 폴 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --surface2: #1C2330;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.15);
+  --text: #E6EDF3;
+  --muted: #7D8590;
+  --accent: #58A6FF;
+  --green: #34D399;
+  --orange: #F97316;
+  --red: #F87171;
+  --purple: #A78BFA;
+  --radius: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── Layout ───────────────────────────────── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.main {
+  flex: 1;
+  margin-left: 240px;
+  padding: 32px;
+  max-width: 960px;
+}
+
+.sidebar-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-bottom: 32px;
+  padding: 0 8px;
+}
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(88,166,255,0.1); color: var(--accent); }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+/* ── Panels ───────────────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+.panel-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+}
+
+/* ── Cards ────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge-active { background: rgba(52,211,153,0.15); color: var(--green); }
+.badge-draft { background: rgba(125,133,144,0.15); color: var(--muted); }
+.badge-closed { background: rgba(248,113,113,0.15); color: var(--red); }
+
+.card-meta {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons ──────────────────────────────── */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { border-color: var(--border-hover); background: var(--border); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  border-color: transparent;
+  color: #fff;
+}
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-accent {
+  background: rgba(88,166,255,0.12);
+  border-color: rgba(88,166,255,0.3);
+  color: var(--accent);
+}
+
+.btn-danger {
+  background: rgba(248,113,113,0.1);
+  border-color: rgba(248,113,113,0.3);
+  color: var(--red);
+}
+
+.btn-green {
+  background: rgba(52,211,153,0.12);
+  border-color: rgba(52,211,153,0.3);
+  color: var(--green);
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+/* ── Forms ────────────────────────────────── */
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-select { cursor: pointer; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── AI Generate Section ─────────────────── */
+.ai-section {
+  border: 1px solid rgba(88,166,255,0.2);
+  background: rgba(88,166,255,0.03);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ai-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.engine-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.engine-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.engine-btn.selected {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(88,166,255,0.08);
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Question Editor ─────────────────────── */
+.question-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.question-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.question-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+}
+.btn-remove:hover { color: var(--red); }
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.option-key {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.option-row .form-input { flex: 1; padding: 7px 10px; font-size: 12px; }
+
+.btn-add-option {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 4px;
+}
+.btn-add-option:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Share / URL section ─────────────────── */
+.share-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.url-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.url-display {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.social-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+}
+
+.social-kakao { background: #FEE500; color: #191919; }
+.social-twitter { background: #1DA1F2; }
+.social-facebook { background: #1877F2; }
+.social-linkedin { background: #0A66C2; }
+.social-copy { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+/* ── Stats ────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+}
+
+/* ── Toast ────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  background: var(--surface);
+  border: 1px solid var(--green);
+  border-radius: 10px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 1000;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── Empty state ─────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state-text { font-size: 14px; margin-bottom: 20px; }
+
+/* ── Responsive ──────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 16px; }
+  .form-row { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">POLL ADMIN</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPanel('dashboard')">
+        <span class="nav-icon">📊</span> 대시보드
+      </button>
+      <button class="nav-item" onclick="showPanel('create')">
+        <span class="nav-icon">✨</span> 새 폴 만들기
+      </button>
+      <button class="nav-item" onclick="showPanel('polls')">
+        <span class="nav-icon">📋</span> 폴 목록
+      </button>
+      <button class="nav-item" onclick="showPanel('members')" id="nav-members">
+        <span class="nav-icon">👥</span> 멤버 관리
+      </button>
+      <button class="nav-item" onclick="showPanel('settings')">
+        <span class="nav-icon">⚙️</span> API 설정
+      </button>
+      <a class="nav-item" href="/" style="text-decoration:none">
+        <span class="nav-icon">🎯</span> 기존 퀴즈 보기
+      </a>
+    </nav>
+    <div style="margin-top:auto; padding-top:24px; border-top:1px solid var(--border)">
+      <div style="padding:8px 12px;font-size:12px;color:var(--muted);margin-bottom:4px">
+        <div id="sidebar-user-name" style="color:var(--text);font-weight:700"></div>
+        <div id="sidebar-user-email" style="font-size:11px"></div>
+        <div id="sidebar-user-role" style="margin-top:2px"></div>
+      </div>
+      <button class="nav-item" onclick="doLogout()" style="color:var(--red)">
+        <span class="nav-icon">🚪</span> 로그아웃
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <div class="panel active" id="panel-dashboard">
+      <h1 class="panel-title">대시보드</h1>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-polls">0</div>
+          <div class="stat-label">전체 폴</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-responses">0</div>
+          <div class="stat-label">전체 응답</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-urls">0</div>
+          <div class="stat-label">숏 URL</div>
+        </div>
+      </div>
+
+      <h2 style="font-size:16px; font-weight:700; margin-bottom:16px;">최근 폴</h2>
+      <div id="recent-polls"></div>
+    </div>
+
+    <!-- ═══ CREATE POLL ═══ -->
+    <div class="panel" id="panel-create">
+      <h1 class="panel-title">새 폴 만들기</h1>
+
+      <!-- AI Generation -->
+      <div class="ai-section">
+        <div class="ai-header">
+          <span style="font-size:20px">🤖</span>
+          <h3>AI로 폴 생성하기</h3>
+        </div>
+
+        <div class="engine-toggle">
+          <button class="engine-btn selected" onclick="selectEngine('claude')" id="btn-engine-claude">
+            🟣 Claude
+          </button>
+          <button class="engine-btn" onclick="selectEngine('gemini')" id="btn-engine-gemini">
+            🔵 Gemini
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">폴 제목</label>
+          <input class="form-input" id="ai-title" placeholder="예: MZ세대 직장인 번아웃 진단">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">폴 설명 (선택)</label>
+          <textarea class="form-textarea" id="ai-description" rows="2"
+            placeholder="예: 직장인들의 번아웃 수준을 5단계로 진단하고 유형별 솔루션을 제안합니다"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">질문 수</label>
+            <input class="form-input" id="ai-steps" type="number" value="5" min="2" max="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">AI 엔진</label>
+            <div id="engine-display" style="padding:10px;font-size:13px;color:var(--accent);">Claude</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg" onclick="generateWithAI()" id="btn-generate" style="width:100%">
+          🤖 AI로 폴 생성하기
+        </button>
+        <div class="form-hint" style="text-align:center;margin-top:8px">
+          API 키가 필요합니다. ⚙️ API 설정에서 입력해주세요.
+        </div>
+      </div>
+
+      <!-- Manual / AI-filled form -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">폴 편집기</span>
+          <button class="btn btn-accent" onclick="addQuestion()">+ 질문 추가</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">제목</label>
+          <input class="form-input" id="poll-title" placeholder="폴 제목 입력">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">설명</label>
+          <textarea class="form-textarea" id="poll-description" rows="2" placeholder="간단한 설명"></textarea>
+        </div>
+
+        <div id="questions-editor"></div>
+
+        <div style="margin-top:16px; display:flex; gap:10px;">
+          <button class="btn btn-primary btn-lg" onclick="savePoll()" style="flex:1">
+            폴 저장하기
+          </button>
+          <button class="btn btn-lg" onclick="clearEditor()">초기화</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ POLL LIST ═══ -->
+    <div class="panel" id="panel-polls">
+      <h1 class="panel-title">폴 목록</h1>
+      <div id="polls-list"></div>
+    </div>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <div class="panel" id="panel-settings">
+      <h1 class="panel-title">API 설정</h1>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">AI API 키</div>
+
+        <div class="form-group">
+          <label class="form-label">Claude API Key</label>
+          <input class="form-input" id="setting-claude-key" type="password"
+            placeholder="sk-ant-api03-...">
+          <div class="form-hint">Anthropic Console에서 발급받을 수 있습니다.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gemini API Key</label>
+          <input class="form-input" id="setting-gemini-key" type="password"
+            placeholder="AIza...">
+          <div class="form-hint">Google AI Studio에서 발급받을 수 있습니다.</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="saveSettings()">설정 저장</button>
+        <div class="form-hint" style="margin-top:8px">API 키는 브라우저 로컬스토리지에만 저장됩니다.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">서버 정보</div>
+        <div class="card-meta">
+          <span>Base URL: <span style="color:var(--accent)" id="base-url-display"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ POLL DETAIL (dynamic) ═══ -->
+    <div class="panel" id="panel-detail">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+        <button class="btn" onclick="showPanel('polls')">← 목록</button>
+        <h1 class="panel-title" style="margin-bottom:0" id="detail-title"></h1>
+      </div>
+
+      <!-- Share Section -->
+      <div class="share-section" id="detail-share">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:12px">공유 및 배포</h3>
+
+        <div style="margin-bottom:12px">
+          <div class="form-label">폴 URL</div>
+          <div class="url-box">
+            <div class="url-display" id="detail-poll-url"></div>
+            <button class="btn" onclick="copyUrl('detail-poll-url')">복사</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <div class="form-label">숏 URL</div>
+          <div class="url-box">
+            <div class="url-display" id="detail-short-url">아직 생성되지 않음</div>
+            <button class="btn btn-accent" onclick="createShortUrl()" id="btn-create-short">생성</button>
+            <button class="btn" onclick="copyUrl('detail-short-url')">복사</button>
+          </div>
+        </div>
+
+        <div class="social-buttons">
+          <button class="social-btn social-kakao" onclick="shareKakao()">카카오톡</button>
+          <button class="social-btn social-twitter" onclick="shareTwitter()">Twitter / X</button>
+          <button class="social-btn social-facebook" onclick="shareFacebook()">Facebook</button>
+          <button class="social-btn social-linkedin" onclick="shareLinkedIn()">LinkedIn</button>
+          <button class="social-btn social-copy" onclick="copyShareUrl()">🔗 링크 복사</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="card" id="detail-stats-card">
+        <div class="card-title" style="margin-bottom:16px">응답 통계</div>
+        <div id="detail-stats"></div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-danger" onclick="deletePoll()">삭제</button>
+      </div>
+    </div>
+
+    <!-- MEMBERS PANEL -->
+    <div class="panel" id="panel-members">
+      <h1 class="panel-title">멤버 관리</h1>
+
+      <!-- Invite section (owner only) -->
+      <div class="card" id="invite-section">
+        <div class="card-header">
+          <span class="card-title">초대 코드</span>
+          <button class="btn btn-primary" onclick="createInvite()">새 초대 코드 생성</button>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+          초대 코드를 생성하여 새 멤버를 초대하세요. 각 코드는 1회만 사용 가능합니다.
+        </p>
+        <div id="invites-list"></div>
+      </div>
+
+      <!-- Members list -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">멤버 목록</div>
+        <div id="members-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let selectedEngine = 'claude';
+let editingQuestions = [];
+let currentPollId = null;
+let allPolls = [];
+let currentUser = null;
+
+const BASE = window.location.origin;
+
+/* ════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════ */
+function getToken() {
+  return localStorage.getItem('auth_token');
+}
+
+function authHeaders(extra = {}) {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`, ...extra };
+}
+
+async function authFetch(url, opts = {}) {
+  opts.headers = { ...authHeaders(), ...opts.headers };
+  const resp = await fetch(url, opts);
+  if (resp.status === 401) {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    window.location.href = '/admin/login';
+    throw new Error('Session expired');
+  }
+  return resp;
+}
+
+async function checkAuth() {
+  const token = getToken();
+  if (!token) {
+    window.location.href = '/admin/login';
+    return;
+  }
+  try {
+    const resp = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!resp.ok) throw new Error();
+    currentUser = await resp.json();
+
+    document.getElementById('sidebar-user-name').textContent = currentUser.name;
+    document.getElementById('sidebar-user-email').textContent = currentUser.email;
+    document.getElementById('sidebar-user-role').innerHTML =
+      currentUser.role === 'owner'
+        ? '<span style="color:var(--green);font-size:10px;font-weight:700">OWNER</span>'
+        : '<span style="color:var(--accent);font-size:10px;font-weight:700">MEMBER</span>';
+
+    // Hide invite section for non-owners
+    if (currentUser.role !== 'owner') {
+      const invSec = document.getElementById('invite-section');
+      if (invSec) invSec.style.display = 'none';
+    }
+  } catch {
+    localStorage.removeItem('auth_token');
+    window.location.href = '/admin/login';
+  }
+}
+
+async function doLogout() {
+  try {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+    });
+  } catch {}
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('auth_user');
+  window.location.href = '/admin/login';
+}
+
+/* ════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════ */
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const panel = document.getElementById(`panel-${name}`);
+  if (panel) panel.classList.add('active');
+
+  // Highlight nav
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+  const navMap = { dashboard: 0, create: 1, polls: 2, members: 3, settings: 4 };
+  if (navMap[name] !== undefined && navItems[navMap[name]]) {
+    navItems[navMap[name]].classList.add('active');
+  }
+
+  // Load data
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'polls') loadPollsList();
+  if (name === 'members') loadMembers();
+}
+
+/* ════════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════════ */
+async function loadDashboard() {
+  try {
+    const [polls, urls] = await Promise.all([
+      fetch('/api/polls').then(r => r.json()),
+      authFetch('/api/short-urls').then(r => r.json()),
+    ]);
+
+    allPolls = polls;
+    const totalResponses = polls.reduce((s, p) => s + (p.response_count || 0), 0);
+
+    document.getElementById('stat-polls').textContent = polls.length;
+    document.getElementById('stat-responses').textContent = totalResponses;
+    document.getElementById('stat-urls').textContent = urls.length;
+
+    const container = document.getElementById('recent-polls');
+    if (!polls.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-text">아직 만든 폴이 없습니다</div>
+          <button class="btn btn-primary" onclick="showPanel('create')">첫 폴 만들기</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = polls.slice(0, 5).map(p => pollCard(p)).join('');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function pollCard(p) {
+  const date = new Date(p.created_at).toLocaleDateString('ko-KR');
+  const statusBadge = p.status === 'active'
+    ? '<span class="badge badge-active">ACTIVE</span>'
+    : '<span class="badge badge-closed">CLOSED</span>';
+
+  return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${escHtml(p.title)}</span>
+        ${statusBadge}
+      </div>
+      <div class="card-meta">
+        <span>📅 ${date}</span>
+        <span>❓ ${p.questions?.length || 0}문항</span>
+        <span>📊 ${p.response_count || 0}응답</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn" onclick="viewPollDetail('${p.id}')">상세 보기</button>
+        <button class="btn btn-accent" onclick="window.open('/p/${p.id}','_blank')">미리 보기</button>
+        <button class="btn btn-green" onclick="quickShare('${p.id}')">공유</button>
+      </div>
+    </div>`;
+}
+
+/* ════════════════════════════════════════════
+   POLLS LIST
+════════════════════════════════════════════ */
+async function loadPollsList() {
+  const polls = await fetch('/api/polls').then(r => r.json());
+  allPolls = polls;
+  const container = document.getElementById('polls-list');
+
+  if (!polls.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-text">아직 폴이 없습니다</div>
+        <button class="btn btn-primary" onclick="showPanel('create')">새 폴 만들기</button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = polls.map(p => pollCard(p)).join('');
+}
+
+/* ════════════════════════════════════════════
+   AI GENERATION
+════════════════════════════════════════════ */
+function selectEngine(engine) {
+  selectedEngine = engine;
+  document.getElementById('btn-engine-claude').classList.toggle('selected', engine === 'claude');
+  document.getElementById('btn-engine-gemini').classList.toggle('selected', engine === 'gemini');
+  document.getElementById('engine-display').textContent = engine === 'claude' ? 'Claude' : 'Gemini';
+}
+
+async function generateWithAI() {
+  const title = document.getElementById('ai-title').value.trim();
+  const description = document.getElementById('ai-description').value.trim();
+  const steps = parseInt(document.getElementById('ai-steps').value) || 5;
+
+  if (!title) return toast('제목을 입력해주세요', 'error');
+
+  const keyField = selectedEngine === 'claude' ? 'setting-claude-key' : 'setting-gemini-key';
+  const apiKey = document.getElementById(keyField).value || localStorage.getItem(`api_key_${selectedEngine}`);
+  if (!apiKey) return toast('API 키를 먼저 설정해주세요. ⚙️ API 설정으로 이동합니다.', 'error');
+
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> AI가 생성 중...';
+
+  try {
+    const resp = await authFetch('/api/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        engine: selectedEngine,
+        title,
+        description,
+        steps,
+        api_key: apiKey,
+      }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    // Fill the editor with AI results
+    const poll = data.poll;
+    document.getElementById('poll-title').value = poll.title || title;
+    document.getElementById('poll-description').value = poll.description || description;
+
+    editingQuestions = (poll.questions || []).map(q => ({
+      text: q.text,
+      options: q.options.map(o => ({ text: o.text || o })),
+    }));
+
+    renderQuestions();
+    toast('AI가 폴을 생성했습니다! 아래에서 편집 후 저장하세요.');
+
+    // Scroll to editor
+    document.querySelector('.card').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    toast('생성 실패: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🤖 AI로 폴 생성하기';
+  }
+}
+
+/* ════════════════════════════════════════════
+   QUESTION EDITOR
+════════════════════════════════════════════ */
+function renderQuestions() {
+  const container = document.getElementById('questions-editor');
+  if (!editingQuestions.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">질문을 추가하거나 AI로 생성해보세요</div>';
+    return;
+  }
+
+  container.innerHTML = editingQuestions.map((q, qi) => {
+    const optionsHtml = q.options.map((opt, oi) => `
+      <div class="option-row">
+        <span class="option-key">${String.fromCharCode(65 + oi)}</span>
+        <input class="form-input" value="${escAttr(opt.text)}"
+          onchange="editingQuestions[${qi}].options[${oi}].text=this.value"
+          placeholder="선택지 ${oi + 1}">
+        <button class="btn-remove" onclick="removeOption(${qi},${oi})">×</button>
+      </div>
+    `).join('');
+
+    return `
+      <div class="question-item">
+        <div class="question-item-header">
+          <span class="question-num">Q${String(qi + 1).padStart(2, '0')}</span>
+          <button class="btn-remove" onclick="removeQuestion(${qi})">🗑️</button>
+        </div>
+        <div class="form-group">
+          <input class="form-input" value="${escAttr(q.text)}"
+            onchange="editingQuestions[${qi}].text=this.value"
+            placeholder="질문 입력" style="font-weight:700">
+        </div>
+        ${optionsHtml}
+        <button class="btn-add-option" onclick="addOption(${qi})">+ 선택지 추가</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function addQuestion() {
+  editingQuestions.push({
+    text: '',
+    options: [{ text: '' }, { text: '' }],
+  });
+  renderQuestions();
+}
+
+function removeQuestion(idx) {
+  editingQuestions.splice(idx, 1);
+  renderQuestions();
+}
+
+function addOption(qIdx) {
+  editingQuestions[qIdx].options.push({ text: '' });
+  renderQuestions();
+}
+
+function removeOption(qIdx, oIdx) {
+  if (editingQuestions[qIdx].options.length <= 2) return toast('최소 2개 선택지가 필요합니다', 'error');
+  editingQuestions[qIdx].options.splice(oIdx, 1);
+  renderQuestions();
+}
+
+function clearEditor() {
+  editingQuestions = [];
+  document.getElementById('poll-title').value = '';
+  document.getElementById('poll-description').value = '';
+  renderQuestions();
+}
+
+/* ════════════════════════════════════════════
+   SAVE POLL
+════════════════════════════════════════════ */
+async function savePoll() {
+  const title = document.getElementById('poll-title').value.trim();
+  const description = document.getElementById('poll-description').value.trim();
+
+  if (!title) return toast('제목을 입력해주세요', 'error');
+  if (!editingQuestions.length) return toast('최소 1개 질문이 필요합니다', 'error');
+
+  // Validate
+  for (let i = 0; i < editingQuestions.length; i++) {
+    if (!editingQuestions[i].text.trim()) return toast(`Q${i + 1} 질문을 입력해주세요`, 'error');
+    const validOpts = editingQuestions[i].options.filter(o => o.text.trim());
+    if (validOpts.length < 2) return toast(`Q${i + 1}에 최소 2개 선택지가 필요합니다`, 'error');
+  }
+
+  // Clean
+  const questions = editingQuestions.map(q => ({
+    text: q.text.trim(),
+    options: q.options.filter(o => o.text.trim()).map(o => ({ text: o.text.trim() })),
+  }));
+
+  try {
+    const resp = await authFetch('/api/polls', {
+      method: 'POST',
+      body: JSON.stringify({ title, description, questions }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    toast('폴이 저장되었습니다!');
+    clearEditor();
+    viewPollDetail(data.poll.id);
+  } catch (err) {
+    toast('저장 실패: ' + err.message, 'error');
+  }
+}
+
+/* ════════════════════════════════════════════
+   POLL DETAIL
+════════════════════════════════════════════ */
+async function viewPollDetail(pollId) {
+  currentPollId = pollId;
+  showPanel('detail');
+
+  try {
+    const [poll, responses] = await Promise.all([
+      fetch(`/api/polls/${pollId}`).then(r => r.json()),
+      fetch(`/api/polls/${pollId}/responses`).then(r => r.json()),
+    ]);
+
+    document.getElementById('detail-title').textContent = poll.title;
+
+    const pollUrl = `${BASE}/p/${pollId}`;
+    document.getElementById('detail-poll-url').textContent = pollUrl;
+
+    // Check if short URL exists
+    const shortUrls = await authFetch('/api/short-urls').then(r => r.json());
+    const existing = shortUrls.find(u => u.poll_id === pollId);
+    if (existing) {
+      document.getElementById('detail-short-url').textContent = `${BASE}/s/${existing.code}`;
+      document.getElementById('btn-create-short').textContent = '재생성';
+    } else {
+      document.getElementById('detail-short-url').textContent = '아직 생성되지 않음';
+      document.getElementById('btn-create-short').textContent = '생성';
+    }
+
+    // Render stats
+    const statsDiv = document.getElementById('detail-stats');
+    if (!responses.total_responses) {
+      statsDiv.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">아직 응답이 없습니다</div>';
+    } else {
+      let html = `<div style="font-size:24px;font-weight:900;color:var(--accent);margin-bottom:16px">${responses.total_responses}명 참여</div>`;
+
+      poll.questions.forEach((q, qi) => {
+        html += `<div style="margin-bottom:16px">`;
+        html += `<div style="font-size:13px;font-weight:700;margin-bottom:8px">Q${qi + 1}. ${escHtml(q.text)}</div>`;
+
+        const total = Object.values(responses.aggregated[qi] || {}).reduce((s, v) => s + v, 0) || 1;
+        q.options.forEach((opt, oi) => {
+          const count = responses.aggregated[qi]?.[oi] || 0;
+          const pct = Math.round((count / total) * 100);
+          html += `
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span style="width:24px;font-size:11px;color:var(--muted)">${String.fromCharCode(65 + oi)}</span>
+              <div style="flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative">
+                <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:4px;transition:width 0.5s"></div>
+                <span style="position:absolute;left:8px;top:2px;font-size:10px;color:var(--text)">${escHtml(opt.text)}</span>
+              </div>
+              <span style="font-family:'Space Mono';font-size:11px;width:36px;text-align:right;color:var(--muted)">${pct}%</span>
+            </div>`;
+        });
+        html += `</div>`;
+      });
+
+      statsDiv.innerHTML = html;
+    }
+  } catch (err) {
+    toast('데이터 로드 실패', 'error');
+    console.error(err);
+  }
+}
+
+/* ════════════════════════════════════════════
+   SHORT URL
+════════════════════════════════════════════ */
+async function createShortUrl() {
+  if (!currentPollId) return;
+
+  try {
+    const resp = await authFetch('/api/short-url', {
+      method: 'POST',
+      body: JSON.stringify({ poll_id: currentPollId }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    document.getElementById('detail-short-url').textContent = data.short_url;
+    document.getElementById('btn-create-short').textContent = '재생성';
+    toast('숏 URL이 생성되었습니다!');
+  } catch (err) {
+    toast('숏 URL 생성 실패', 'error');
+  }
+}
+
+/* ════════════════════════════════════════════
+   SHARING
+════════════════════════════════════════════ */
+function getShareUrl() {
+  const shortUrl = document.getElementById('detail-short-url').textContent;
+  if (shortUrl && !shortUrl.includes('아직')) return shortUrl;
+  return document.getElementById('detail-poll-url').textContent;
+}
+
+function getShareTitle() {
+  return document.getElementById('detail-title').textContent;
+}
+
+function copyUrl(elementId) {
+  const text = document.getElementById(elementId).textContent;
+  if (text.includes('아직')) return toast('먼저 URL을 생성해주세요', 'error');
+  navigator.clipboard.writeText(text);
+  toast('URL이 복사되었습니다!');
+}
+
+function copyShareUrl() {
+  navigator.clipboard.writeText(getShareUrl());
+  toast('링크가 복사되었습니다!');
+}
+
+function quickShare(pollId) {
+  currentPollId = pollId;
+  const url = `${BASE}/p/${pollId}`;
+  navigator.clipboard.writeText(url);
+  toast('폴 URL이 복사되었습니다!');
+}
+
+function shareKakao() {
+  const url = getShareUrl();
+  const text = `${getShareTitle()} - 지금 참여해보세요!`;
+  window.open(`https://story.kakao.com/share?url=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+}
+
+function shareTwitter() {
+  const url = getShareUrl();
+  const text = `${getShareTitle()} - 지금 참여해보세요!`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+}
+
+function shareFacebook() {
+  const url = getShareUrl();
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+}
+
+function shareLinkedIn() {
+  const url = getShareUrl();
+  window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+}
+
+/* ════════════════════════════════════════════
+   DELETE POLL
+════════════════════════════════════════════ */
+async function deletePoll() {
+  if (!currentPollId) return;
+  if (!confirm('정말 이 폴을 삭제하시겠습니까?')) return;
+
+  try {
+    await authFetch(`/api/polls/${currentPollId}`, { method: 'DELETE' });
+    toast('폴이 삭제되었습니다');
+    showPanel('polls');
+  } catch (err) {
+    toast('삭제 실패', 'error');
+  }
+}
+
+/* ════════════════════════════════════════════
+   SETTINGS
+════════════════════════════════════════════ */
+function saveSettings() {
+  const claudeKey = document.getElementById('setting-claude-key').value;
+  const geminiKey = document.getElementById('setting-gemini-key').value;
+  if (claudeKey) localStorage.setItem('api_key_claude', claudeKey);
+  if (geminiKey) localStorage.setItem('api_key_gemini', geminiKey);
+  toast('설정이 저장되었습니다!');
+}
+
+function loadSettings() {
+  const claudeKey = localStorage.getItem('api_key_claude');
+  const geminiKey = localStorage.getItem('api_key_gemini');
+  if (claudeKey) document.getElementById('setting-claude-key').value = claudeKey;
+  if (geminiKey) document.getElementById('setting-gemini-key').value = geminiKey;
+  document.getElementById('base-url-display').textContent = BASE;
+}
+
+/* ════════════════════════════════════════════
+   UTILITIES
+════════════════════════════════════════════ */
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function escAttr(s) {
+  return (s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = type === 'error' ? 'var(--red)' : 'var(--green)';
+  el.style.color = type === 'error' ? 'var(--red)' : 'var(--green)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ════════════════════════════════════════════
+   MEMBERS & INVITES
+════════════════════════════════════════════ */
+async function loadMembers() {
+  try {
+    const members = await authFetch('/api/auth/members').then(r => r.json());
+    const container = document.getElementById('members-list');
+    container.innerHTML = members.map(m => {
+      const date = new Date(m.created_at).toLocaleDateString('ko-KR');
+      const roleBadge = m.role === 'owner'
+        ? '<span class="badge badge-active">OWNER</span>'
+        : '<span class="badge badge-draft">MEMBER</span>';
+      const removeBtn = currentUser?.role === 'owner' && m.id !== currentUser.id
+        ? `<button class="btn btn-danger" onclick="removeMember('${m.id}','${escAttr(m.email)}')">제거</button>`
+        : '';
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-weight:700;font-size:13px">${escHtml(m.name)} ${roleBadge}</div>
+            <div style="font-size:12px;color:var(--muted)">${escHtml(m.email)} · ${date}</div>
+          </div>
+          ${removeBtn}
+        </div>`;
+    }).join('');
+
+    // Load invites if owner
+    if (currentUser?.role === 'owner') {
+      const invites = await authFetch('/api/auth/invites').then(r => r.json());
+      const invContainer = document.getElementById('invites-list');
+      if (!invites.length) {
+        invContainer.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:12px">아직 초대 코드가 없습니다</div>';
+      } else {
+        invContainer.innerHTML = invites.map(inv => {
+          const status = inv.used
+            ? `<span style="color:var(--muted);font-size:11px">사용됨 (${escHtml(inv.used_by || '')})</span>`
+            : `<span style="color:var(--green);font-size:11px">미사용</span>`;
+          const copyBtn = !inv.used
+            ? `<button class="btn" onclick="copyInviteLink('${inv.code}')">링크 복사</button>`
+            : '';
+          return `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+              <div>
+                <code style="font-family:'Space Mono';font-size:13px;color:var(--accent)">${inv.code}</code>
+                <span style="margin-left:8px">${status}</span>
+              </div>
+              ${copyBtn}
+            </div>`;
+        }).join('');
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function createInvite() {
+  try {
+    const resp = await authFetch('/api/auth/invites', { method: 'POST' });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    const link = `${BASE}/admin/login?invite=${data.code}`;
+    navigator.clipboard.writeText(link);
+    toast('초대 코드가 생성되고 링크가 복사되었습니다!');
+    loadMembers();
+  } catch (err) {
+    toast('초대 코드 생성 실패: ' + err.message, 'error');
+  }
+}
+
+function copyInviteLink(code) {
+  const link = `${BASE}/admin/login?invite=${code}`;
+  navigator.clipboard.writeText(link);
+  toast('초대 링크가 복사되었습니다!');
+}
+
+async function removeMember(id, email) {
+  if (!confirm(`${email}을(를) 제거하시겠습니까?`)) return;
+  try {
+    await authFetch(`/api/auth/members/${id}`, { method: 'DELETE' });
+    toast('멤버가 제거되었습니다');
+    loadMembers();
+  } catch (err) {
+    toast('멤버 제거 실패', 'error');
+  }
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+(async function init() {
+  await checkAuth();
+  loadSettings();
+  loadDashboard();
+  renderQuestions();
+})();
+</script>
+</body>
+</html>

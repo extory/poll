@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Poll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --surface2: #1C2330;
+  --border: rgba(255,255,255,0.08);
+  --text: #E6EDF3;
+  --muted: #7D8590;
+  --accent: #58A6FF;
+  --green: #34D399;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.screen {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100dvh;
+  padding: 0 20px 40px;
+}
+.screen.active { display: flex; }
+
+/* ── Loading ──────────────────────────────── */
+#screen-loading {
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.loading-orb {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #58A6FF, #34D399, #A78BFA, #58A6FF);
+  animation: spin 1.2s linear infinite;
+  position: relative;
+}
+.loading-orb::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--bg);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error ────────────────────────────────── */
+#screen-error {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+/* ── Intro ────────────────────────────────── */
+#screen-intro {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  padding-top: 60px;
+}
+
+.poll-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(88,166,255,0.35);
+  background: rgba(88,166,255,0.08);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  margin-bottom: 28px;
+}
+
+.poll-title {
+  font-size: clamp(26px, 7vw, 38px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #58A6FF, #34D399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.poll-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 340px;
+  margin: 0 auto 32px;
+}
+
+.poll-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 20px;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* ── Quiz ─────────────────────────────────── */
+#screen-quiz {
+  padding-top: 24px;
+  gap: 0;
+}
+
+.quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.quiz-count {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+}
+.quiz-count span { color: var(--text); font-weight: 700; }
+
+.progress-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 36px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.question-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  margin-bottom: 20px;
+}
+
+.question-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.question-text {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.option-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.option-key {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.18s ease;
+}
+
+.option-btn:active { transform: scale(0.98); }
+
+.option-btn.selected {
+  border-color: var(--accent);
+  background: rgba(88,166,255,0.08);
+}
+.option-btn.selected .option-key {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  border: none;
+  color: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Result ───────────────────────────────── */
+#screen-result {
+  padding-top: 40px;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.result-title {
+  font-size: 20px;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--green);
+}
+
+.result-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.result-chart {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.result-bar-row {
+  margin-bottom: 12px;
+}
+.result-bar-row:last-child { margin-bottom: 0; }
+
+.result-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.result-bar-label span:first-child { font-weight: 700; }
+.result-bar-label span:last-child {
+  font-family: 'Space Mono', monospace;
+  color: var(--accent);
+}
+
+.result-bar-bg {
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.result-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 4px;
+  width: 0%;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.share-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+}
+
+.share-section p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.share-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.share-btn:active { transform: scale(0.97); }
+
+.footer {
+  text-align: center;
+  padding: 20px 0;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fade-in 0.4s ease both; }
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Loading -->
+  <section class="screen active" id="screen-loading">
+    <div class="loading-orb"></div>
+    <div style="color:var(--muted);font-size:14px">폴을 불러오는 중...</div>
+  </section>
+
+  <!-- Error -->
+  <section class="screen" id="screen-error">
+    <div style="font-size:48px">😕</div>
+    <div style="font-size:18px;font-weight:700">폴을 찾을 수 없습니다</div>
+    <div style="color:var(--muted);font-size:14px">링크를 다시 확인해주세요</div>
+  </section>
+
+  <!-- Intro -->
+  <section class="screen" id="screen-intro">
+    <div class="poll-badge" id="poll-badge"></div>
+    <h1 class="poll-title" id="poll-title-display"></h1>
+    <p class="poll-desc" id="poll-desc-display"></p>
+
+    <button class="btn-primary" onclick="startPoll()" style="max-width:320px;margin:0 auto;">
+      참여하기 <span>→</span>
+    </button>
+
+    <div class="poll-meta">
+      <span id="poll-step-count"></span>
+      <span id="poll-response-count"></span>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-header">
+      <div class="quiz-count">
+        <span id="q-current">1</span> / <span id="q-total"></span>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-num" id="question-num">Q01</div>
+      <div class="question-text" id="question-text"></div>
+    </div>
+
+    <div class="options-list" id="options-list"></div>
+
+    <button class="btn-primary" id="btn-next" onclick="nextQuestion()" disabled>
+      다음 <span>→</span>
+    </button>
+  </section>
+
+  <!-- Result -->
+  <section class="screen" id="screen-result">
+    <div class="result-title">참여 완료!</div>
+    <div class="result-subtitle">응답이 기록되었습니다</div>
+
+    <div class="result-chart" id="result-chart"></div>
+
+    <div class="share-section">
+      <p>친구에게도 공유해보세요!</p>
+      <div class="share-buttons">
+        <button class="share-btn" onclick="sharePoll('twitter')">Twitter / X</button>
+        <button class="share-btn" onclick="sharePoll('facebook')">Facebook</button>
+        <button class="share-btn" onclick="sharePoll('copy')">🔗 링크 복사</button>
+      </div>
+    </div>
+
+    <div class="footer">Powered by Poll Platform · EXTORY</div>
+  </section>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   STATE
+════���═══════════════════════════════════════ */
+let pollData = null;
+let currentQ = 0;
+let answers = {};
+
+/* ════════════════════════════════════════════
+   INIT — load poll
+════════════════════════════════════════════ */
+(async function init() {
+  const pathParts = window.location.pathname.split('/');
+  const pollId = pathParts[pathParts.length - 1];
+
+  try {
+    const resp = await fetch(`/api/polls/${pollId}`);
+    if (!resp.ok) throw new Error('not found');
+    pollData = await resp.json();
+
+    document.title = pollData.title + ' — Poll';
+
+    // Fill intro
+    document.getElementById('poll-badge').textContent = `${pollData.questions.length}문항 · 참여형 폴`;
+    document.getElementById('poll-title-display').textContent = pollData.title;
+    document.getElementById('poll-desc-display').textContent = pollData.description || '지금 바로 참여해보세요!';
+    document.getElementById('poll-step-count').textContent = `❓ ${pollData.questions.length}문항`;
+    document.getElementById('poll-response-count').textContent = `📊 ${pollData.response_count || 0}명 참여`;
+    document.getElementById('q-total').textContent = pollData.questions.length;
+
+    showScreen('intro');
+  } catch (err) {
+    showScreen('error');
+  }
+})();
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+/* ════════════════════════════════════════════
+   POLL FLOW
+════════════════════════════════════════════ */
+function startPoll() {
+  currentQ = 0;
+  answers = {};
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = pollData.questions[currentQ];
+  document.getElementById('q-current').textContent = currentQ + 1;
+  document.getElementById('question-num').textContent = `Q${String(currentQ + 1).padStart(2, '0')}`;
+  document.getElementById('question-text').textContent = q.text;
+
+  const pct = ((currentQ) / pollData.questions.length * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  const list = document.getElementById('options-list');
+  list.innerHTML = q.options.map((opt, i) => `
+    <button class="option-btn ${answers[currentQ] === i ? 'selected' : ''}"
+            onclick="selectOption(${i})">
+      <span class="option-key">${String.fromCharCode(65 + i)}</span>
+      <span>${escHtml(opt.text)}</span>
+    </button>
+  `).join('');
+
+  const isLast = currentQ === pollData.questions.length - 1;
+  const btn = document.getElementById('btn-next');
+  btn.innerHTML = isLast ? '결과 보기 <span>→</span>' : '다음 <span>→</span>';
+  btn.disabled = answers[currentQ] === undefined;
+}
+
+function selectOption(idx) {
+  answers[currentQ] = idx;
+  renderQuestion();
+}
+
+async function nextQuestion() {
+  if (answers[currentQ] === undefined) return;
+
+  if (currentQ < pollData.questions.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    // Submit
+    document.getElementById('progress-fill').style.width = '100%';
+    await submitAndShowResults();
+  }
+}
+
+async function submitAndShowResults() {
+  const pathParts = window.location.pathname.split('/');
+  const pollId = pathParts[pathParts.length - 1];
+
+  try {
+    await fetch(`/api/polls/${pollId}/responses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers }),
+    });
+  } catch (err) {
+    console.error('Submit error:', err);
+  }
+
+  // Fetch aggregated results
+  try {
+    const resp = await fetch(`/api/polls/${pollId}/responses`);
+    const data = await resp.json();
+
+    const chart = document.getElementById('result-chart');
+    let html = '';
+
+    pollData.questions.forEach((q, qi) => {
+      const total = Object.values(data.aggregated[qi] || {}).reduce((s, v) => s + v, 0) || 1;
+
+      html += `<div style="margin-bottom:20px">`;
+      html += `<div style="font-size:13px;font-weight:700;margin-bottom:10px">Q${qi + 1}. ${escHtml(q.text)}</div>`;
+
+      q.options.forEach((opt, oi) => {
+        const count = data.aggregated[qi]?.[oi] || 0;
+        const pct = Math.round((count / total) * 100);
+        const isMyAnswer = answers[qi] === oi;
+
+        html += `
+          <div class="result-bar-row">
+            <div class="result-bar-label">
+              <span>${isMyAnswer ? '▸ ' : ''}${escHtml(opt.text)}</span>
+              <span>${pct}%</span>
+            </div>
+            <div class="result-bar-bg">
+              <div class="result-bar-fill" data-width="${pct}"></div>
+            </div>
+          </div>`;
+      });
+
+      html += `</div>`;
+    });
+
+    chart.innerHTML = html;
+
+    showScreen('result');
+
+    // Animate bars
+    setTimeout(() => {
+      document.querySelectorAll('.result-bar-fill').forEach(el => {
+        el.style.width = el.dataset.width + '%';
+      });
+    }, 100);
+  } catch (err) {
+    showScreen('result');
+  }
+}
+
+/* ════════════════════════════════════════════
+   SHARING
+════════════════════════════════════════════ */
+function sharePoll(platform) {
+  const url = window.location.href;
+  const text = `${pollData.title} - 지금 참여해보세요!`;
+
+  switch (platform) {
+    case 'twitter':
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+      break;
+    case 'facebook':
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+      break;
+    case 'copy':
+      navigator.clipboard.writeText(url);
+      alert('링크가 복사되었습니다!');
+      break;
+  }
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

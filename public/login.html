@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — Poll Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D1117;
+  --surface: #161B22;
+  --surface2: #1C2330;
+  --border: rgba(255,255,255,0.08);
+  --text: #E6EDF3;
+  --muted: #7D8590;
+  --accent: #58A6FF;
+  --green: #34D399;
+  --red: #F87171;
+  --radius: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+.form-input:focus { outline: none; border-color: var(--accent); }
+
+.form-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563EB, #1E40AF);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) { opacity: 0.9; }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+.error-msg {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: var(--red);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+.error-msg.show { display: block; }
+
+.success-msg {
+  background: rgba(52,211,153,0.1);
+  border: 1px solid rgba(52,211,153,0.3);
+  color: var(--green);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  display: none;
+}
+.success-msg.show { display: block; }
+
+.toggle-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.toggle-link a {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+.toggle-link a:hover { text-decoration: underline; }
+
+.owner-badge {
+  display: inline-block;
+  background: rgba(52,211,153,0.15);
+  color: var(--green);
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Hide sections */
+.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="login-container">
+  <div class="login-header">
+    <div class="login-logo">POLL ADMIN</div>
+    <h1 class="login-title" id="page-title">로그인</h1>
+    <p class="login-subtitle" id="page-subtitle">어드민에 접속하려면 로그인하세요</p>
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+  <div class="success-msg" id="success-msg"></div>
+
+  <!-- LOGIN FORM -->
+  <div id="login-form">
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input class="form-input" id="login-email" type="email" placeholder="admin@example.com"
+          autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <input class="form-input" id="login-password" type="password" placeholder="비밀번호"
+          autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="btn-login" onclick="doLogin()">로그인</button>
+    </div>
+    <div class="toggle-link" id="toggle-to-signup">
+      계정이 없으신가요? <a onclick="showSignup()">가입하기</a>
+    </div>
+  </div>
+
+  <!-- SIGNUP FORM -->
+  <div id="signup-form" class="hidden">
+    <div class="card">
+      <div id="setup-notice" class="hidden" style="margin-bottom:16px">
+        <div class="owner-badge">OWNER SETUP</div>
+        <p style="font-size:13px;color:var(--muted);margin-top:8px">
+          첫 번째 가입자는 자동으로 오너(Owner)가 됩니다.<br>
+          이후 멤버는 오너의 초대 코드로만 가입할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input class="form-input" id="signup-name" type="text" placeholder="이름"
+          autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">이메일</label>
+        <input class="form-input" id="signup-email" type="email" placeholder="admin@example.com"
+          autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">비밀번호</label>
+        <input class="form-input" id="signup-password" type="password" placeholder="6자 이상"
+          autocomplete="new-password">
+      </div>
+      <div class="form-group" id="invite-group" class="hidden">
+        <label class="form-label">초대 코드</label>
+        <input class="form-input" id="signup-invite" type="text" placeholder="초대 코드 입력">
+        <div class="form-hint">오너로부터 받은 초대 코드를 입력하세요</div>
+      </div>
+      <button class="btn btn-primary" id="btn-signup" onclick="doSignup()">가입하기</button>
+    </div>
+    <div class="toggle-link">
+      이미 계정이 있으신가요? <a onclick="showLogin()">로그인</a>
+    </div>
+  </div>
+</div>
+
+<script>
+let isInitialized = false;
+
+// Check if already logged in
+(async function init() {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    try {
+      const resp = await fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        window.location.href = '/admin';
+        return;
+      }
+      localStorage.removeItem('auth_token');
+    } catch {}
+  }
+
+  // Check if system is initialized
+  try {
+    const resp = await fetch('/api/auth/status');
+    const data = await resp.json();
+    isInitialized = data.initialized;
+
+    if (!isInitialized) {
+      // No users yet — show signup for owner setup
+      showSignup();
+      document.getElementById('setup-notice').classList.remove('hidden');
+      document.getElementById('invite-group').classList.add('hidden');
+      document.getElementById('toggle-to-signup').classList.add('hidden');
+    }
+  } catch {}
+
+  // Check for invite code in URL
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('invite')) {
+    showSignup();
+    document.getElementById('signup-invite').value = params.get('invite');
+  }
+
+  // Enter key handlers
+  document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('login-form').classList.contains('hidden')) {
+          doSignup();
+        } else {
+          doLogin();
+        }
+      }
+    });
+  });
+})();
+
+function showLogin() {
+  document.getElementById('login-form').classList.remove('hidden');
+  document.getElementById('signup-form').classList.add('hidden');
+  document.getElementById('page-title').textContent = '로그인';
+  document.getElementById('page-subtitle').textContent = '어드민에 접속하려면 로그인하세요';
+  hideMessages();
+}
+
+function showSignup() {
+  document.getElementById('login-form').classList.add('hidden');
+  document.getElementById('signup-form').classList.remove('hidden');
+  document.getElementById('page-title').textContent = isInitialized ? '가입하기' : '초기 설정';
+  document.getElementById('page-subtitle').textContent = isInitialized
+    ? '초대 코드로 가입하세요'
+    : '첫 번째 관리자 계정을 만드세요';
+
+  // Show/hide invite field
+  if (isInitialized) {
+    document.getElementById('invite-group').classList.remove('hidden');
+    document.getElementById('setup-notice').classList.add('hidden');
+  } else {
+    document.getElementById('invite-group').classList.add('hidden');
+    document.getElementById('setup-notice').classList.remove('hidden');
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('success-msg').classList.remove('show');
+}
+
+function showSuccess(msg) {
+  const el = document.getElementById('success-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('error-msg').classList.remove('show');
+}
+
+function hideMessages() {
+  document.getElementById('error-msg').classList.remove('show');
+  document.getElementById('success-msg').classList.remove('show');
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) return showError('이메일과 비밀번호를 입력하세요');
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> 로그인 중...';
+
+  try {
+    const resp = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await resp.json();
+
+    if (!resp.ok) throw new Error(data.error);
+
+    localStorage.setItem('auth_token', data.token);
+    localStorage.setItem('auth_user', JSON.stringify(data.user));
+    window.location.href = '/admin';
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '로그인';
+  }
+}
+
+async function doSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const invite_code = document.getElementById('signup-invite').value.trim();
+
+  if (!email || !password) return showError('이메일과 비밀번호를 입력하세요');
+  if (password.length < 6) return showError('비밀번호는 6자 이상이어야 합니다');
+
+  const btn = document.getElementById('btn-signup');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> 가입 중...';
+
+  try {
+    const body = { email, password, name };
+    if (invite_code) body.invite_code = invite_code;
+
+    const resp = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+
+    if (!resp.ok) throw new Error(data.error);
+
+    localStorage.setItem('auth_token', data.token);
+    localStorage.setItem('auth_user', JSON.stringify(data.user));
+    window.location.href = '/admin';
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '가입하기';
+  }
+}
+</script>
+</body>
+</html>

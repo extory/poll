@@ -635,19 +635,27 @@ function renderCTA() {
   if (!pollData?.cta?.url) { ctaWrap.style.display = 'none'; return; }
 
   const lang = i18n.getLang();
-  const label = (lang === 'ko' && pollData.cta.label_ko) ? pollData.cta.label_ko : (pollData.cta.label || pollData.cta.label_ko || 'Learn More');
+  const label = pollData.cta[`label_${lang}`] || pollData.cta.label || pollData.cta.label_ko || 'Learn More';
   ctaLink.href = pollData.cta.url;
   ctaLink.textContent = label;
   if (pollData.cta.color) ctaLink.style.background = pollData.cta.color;
   ctaWrap.style.display = 'block';
 }
 
+// Multilingual text helper: returns text for current language
+function lt(obj, field) {
+  if (!obj) return '';
+  const lang = i18n.getLang();
+  if (lang !== 'ko' && obj[`${field}_${lang}`]) return obj[`${field}_${lang}`];
+  return obj[field] || '';
+}
+
 function fillIntroTexts() {
   if (!pollData) return;
   const n = pollData.questions.length;
   document.getElementById('poll-badge').textContent = `${n}${i18n.t('unit_questions')} · ${i18n.t('poll_type')}`;
-  document.getElementById('poll-title-display').textContent = pollData.title;
-  document.getElementById('poll-desc-display').textContent = pollData.description || i18n.t('default_desc');
+  document.getElementById('poll-title-display').textContent = lt(pollData, 'title') || pollData.title;
+  document.getElementById('poll-desc-display').textContent = lt(pollData, 'description') || pollData.description || i18n.t('default_desc');
   document.getElementById('poll-step-count').textContent = `❓ ${n}${i18n.t('unit_questions')}`;
   document.getElementById('poll-response-count').textContent = `📊 ${pollData.response_count || 0}${i18n.t('unit_participants')}`;
 }
@@ -677,7 +685,7 @@ function renderQuestion() {
   const q = pollData.questions[currentQ];
   document.getElementById('q-current').textContent = currentQ + 1;
   document.getElementById('question-num').textContent = `Q${String(currentQ + 1).padStart(2, '0')}`;
-  document.getElementById('question-text').textContent = q.text;
+  document.getElementById('question-text').textContent = lt(q, 'text');
 
   // Show question image if available
   const imgWrap = document.getElementById('question-image');
@@ -696,7 +704,7 @@ function renderQuestion() {
     <button class="option-btn ${answers[currentQ] === i ? 'selected' : ''}"
             onclick="selectOption(${i})">
       <span class="option-key">${String.fromCharCode(65 + i)}</span>
-      <span>${escHtml(opt.text)}</span>
+      <span>${escHtml(lt(opt, 'text'))}</span>
     </button>
   `).join('');
 
@@ -756,7 +764,7 @@ async function submitAndShowResults() {
       const total = Object.values(data.aggregated[qi] || {}).reduce((s, v) => s + v, 0) || 1;
 
       html += `<div style="margin-bottom:20px">`;
-      html += `<div style="font-size:13px;font-weight:700;margin-bottom:10px">Q${qi + 1}. ${escHtml(q.text)}</div>`;
+      html += `<div style="font-size:13px;font-weight:700;margin-bottom:10px">Q${qi + 1}. ${escHtml(lt(q, 'text'))}</div>`;
 
       q.options.forEach((opt, oi) => {
         const count = data.aggregated[qi]?.[oi] || 0;
@@ -766,7 +774,7 @@ async function submitAndShowResults() {
         html += `
           <div class="result-bar-row">
             <div class="result-bar-label">
-              <span>${isMyAnswer ? '▸ ' : ''}${escHtml(opt.text)}</span>
+              <span>${isMyAnswer ? '▸ ' : ''}${escHtml(lt(opt, 'text'))}</span>
               <span>${pct}%</span>
             </div>
             <div class="result-bar-bg">
@@ -852,7 +860,13 @@ function showTypeResult() {
     </div>
   `).join('');
 
-  let traitsHtml = (t.traits || []).map(tr =>
+  // Get localized type data
+  const typeName = t[lang] || t.ko;
+  const typeNameSub = lang === 'ko' ? t.en : (lang === 'ja' ? t.en : t.ko);
+  const typeDesc = lt(t, 'desc');
+  const typeTraits = t[`traits_${lang}`] || t.traits || [];
+
+  let traitsHtml = typeTraits.map(tr =>
     `<span class="type-trait" style="color:${t.color};border:1.5px solid ${t.color}44;background:${t.color}11">${escHtml(tr)}</span>`
   ).join('');
 
@@ -860,10 +874,10 @@ function showTypeResult() {
     <div class="type-result">
       <div class="type-icon-card" style="background:linear-gradient(135deg,${t.color}33,${t.color}11)">${t.icon}</div>
       <div class="type-reveal">${i18n.t('type_you_are')}</div>
-      <div class="type-name" style="color:${t.color}">${escHtml(t.ko)}</div>
-      <div class="type-en">${escHtml(t.en)}</div>
+      <div class="type-name" style="color:${t.color}">${escHtml(typeName)}</div>
+      <div class="type-en">${escHtml(typeNameSub)}</div>
     </div>
-    <div class="type-desc">${escHtml(t.desc)}</div>
+    <div class="type-desc">${escHtml(typeDesc)}</div>
     <div class="type-traits">${traitsHtml}</div>
     <div class="type-scores">
       <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-family:'Space Mono',monospace">${i18n.t('type_analysis')}</div>
@@ -955,6 +969,28 @@ i18n.init({
     type_reveal: 'Your type is...',
     type_you_are: 'You are',
     type_analysis: 'Trait Analysis',
+  },
+  ja: {
+    loading: 'ポールを読み込み中...',
+    error_title: 'ポールが見つかりません',
+    error_desc: 'リンクを再度ご確認ください',
+    start_btn: '参加する',
+    next: '次へ',
+    view_results: '結果を見る',
+    result_title: '参加完了！',
+    result_subtitle: '回答が記録されました',
+    share_prompt: '友達にもシェアしてみましょう！',
+    share_copy: '🔗 リンクをコピー',
+    share_text: '今すぐ参加してみてください！',
+    link_copied: 'リンクがコピーされました！',
+    footer: 'Powered by Poll Platform · EXTORY',
+    unit_questions: '問',
+    poll_type: '参加型ポール',
+    default_desc: '今すぐ参加してみましょう！',
+    unit_participants: '人が参加',
+    type_reveal: 'あなたのタイプは...',
+    type_you_are: 'あなたは',
+    type_analysis: '特性分析',
   }
 }, 'lang-toggle');
 </script>

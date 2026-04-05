@@ -1073,6 +1073,147 @@ const translations = {
 
     // Share text
     share_cta: 'Take part now!',
+  },
+  ja: {
+    // Nav
+    nav_dashboard: 'ダッシュボード',
+    nav_create: '新規ポール作成',
+    nav_polls: 'ポール一覧',
+    nav_members: 'メンバー管理',
+    nav_settings: 'API設定',
+    nav_quiz: '既存クイズを見る',
+    nav_logout: 'ログアウト',
+
+    // Dashboard
+    dashboard_title: 'ダッシュボード',
+    stat_total_polls: '全ポール数',
+    stat_total_responses: '全回答数',
+    stat_short_urls: 'ショートURL',
+    recent_polls: '最近のポール',
+
+    // Empty states
+    empty_no_polls: 'まだポールがありません',
+    empty_first_poll: '最初のポールを作成',
+    empty_no_polls_list: 'まだポールがありません',
+    empty_new_poll: '新規ポール作成',
+
+    // Create poll
+    create_title: '新規ポール作成',
+    ai_generate_title: 'AIでポールを生成',
+    label_poll_title: 'ポールタイトル',
+    label_poll_desc_optional: 'ポール説明（任意）',
+    label_question_count: '質問数',
+    label_ai_engine: 'AIエンジン',
+    btn_ai_generate: 'AIでポールを生成',
+    hint_api_key_needed: 'APIキーが必要です。⚙️ API設定で入力してください。',
+    placeholder_ai_title: '例：Z世代会社員バーンアウト診断',
+    placeholder_ai_desc: '例：会社員のバーンアウトレベルを5段階で診断し、タイプ別のソリューションを提案します',
+
+    // Poll editor
+    poll_editor: 'ポールエディタ',
+    btn_add_question: '+ 質問を追加',
+    label_title: 'タイトル',
+    label_description: '説明',
+    placeholder_poll_title: 'ポールタイトルを入力',
+    placeholder_poll_desc: '簡単な説明',
+    btn_save_poll: 'ポールを保存',
+    btn_reset: 'リセット',
+    btn_gen_images: '🎨 質問ごとの画像を生成',
+    label_cta: 'CTAリンクボタン（任意）',
+    ph_cta_label_ko: 'ボタンテキスト（韓国語）',
+    ph_cta_label_en: 'ボタンテキスト（English）',
+    hint_image_engine: '画像生成はChatGPTとGeminiのみ対応しています。（Claude非対応）',
+    generating_images: '画像を生成中...',
+    toast_images_generated: '全質問の画像が生成されました！',
+    toast_image_fail: '画像生成に失敗しました',
+    editor_empty: '質問を追加するか、AIで生成してください',
+    placeholder_question: '質問を入力',
+    placeholder_option: '選択肢',
+    btn_add_option: '+ 選択肢を追加',
+
+    // Poll list
+    polls_list_title: 'ポール一覧',
+
+    // Poll card
+    card_questions: '問',
+    card_responses: '回答',
+    btn_detail: '詳細を見る',
+    btn_preview: 'プレビュー',
+    btn_share: '共有',
+
+    // Poll detail
+    btn_back_list: '← 一覧',
+    share_title: '共有＆配布',
+    label_poll_url: 'ポールURL',
+    label_short_url: 'ショートURL',
+    btn_copy: 'コピー',
+    btn_copy_short: 'コピー',
+    btn_create: '作成',
+    btn_recreate: '再作成',
+    short_url_none: 'まだ作成されていません',
+    btn_kakao: 'KakaoTalk',
+    btn_copy_link: 'リンクをコピー',
+    response_stats: '回答統計',
+    no_responses_yet: 'まだ回答がありません',
+    participants: '人が参加',
+    btn_delete: '削除',
+
+    // Settings
+    settings_title: 'API設定',
+    settings_api_keys: 'AI APIキー',
+    hint_claude_key: 'Anthropic Consoleから取得できます。',
+    hint_gemini_key: 'Google AI Studioから取得できます。',
+    hint_chatgpt_key: 'OpenAI Platformから取得できます。',
+    btn_save_settings: '設定を保存',
+    hint_local_storage: 'APIキーはブラウザのローカルストレージにのみ保存されます。',
+    settings_server_info: 'サーバー情報',
+
+    // Members
+    members_title: 'メンバー管理',
+    invite_code: '招待コード',
+    btn_create_invite: '新しい招待コードを生成',
+    invite_desc: '招待コードを生成して新しいメンバーを招待してください。各コードは1回のみ使用可能です。',
+    members_list: 'メンバー一覧',
+    no_invites: 'まだ招待コードがありません',
+    invite_used: '使用済み',
+    invite_unused: '未使用',
+    btn_copy_link_invite: 'リンクをコピー',
+    btn_remove_member: '削除',
+
+    // Toast messages
+    toast_poll_saved: 'ポールが保存されました！',
+    toast_enter_title: 'タイトルを入力してください',
+    toast_min_question: '最低1つの質問が必要です',
+    toast_enter_question: '質問を入力してください',
+    toast_min_options: 'には最低2つの選択肢が必要です',
+    toast_min_two_options: '最低2つの選択肢が必要です',
+    toast_save_fail: '保存に失敗しました：',
+    toast_settings_saved: '設定が保存されました！',
+    toast_api_key_missing: '先にAPIキーを設定してください。⚙️ API設定に移動します。',
+    toast_ai_generating: 'AIが生成中...',
+    toast_ai_generated: 'AIがポールを生成しました！下で編集して保存してください。',
+    toast_generate_fail: '生成に失敗しました：',
+    toast_short_url_created: 'ショートURLが作成されました！',
+    toast_short_url_fail: 'ショートURLの作成に失敗しました',
+    toast_url_copied: 'URLがコピーされました！',
+    toast_link_copied: 'リンクがコピーされました！',
+    toast_poll_url_copied: 'ポールURLがコピーされました！',
+    toast_create_url_first: '先にURLを作成してください',
+    toast_poll_deleted: 'ポールが削除されました',
+    toast_delete_fail: '削除に失敗しました',
+    toast_data_load_fail: 'データの読み込みに失敗しました',
+    toast_invite_created: '招待コードが生成され、リンクがコピーされました！',
+    toast_invite_fail: '招待コードの生成に失敗しました：',
+    toast_invite_link_copied: '招待リンクがコピーされました！',
+    toast_member_removed: 'メンバーが削除されました',
+    toast_member_remove_fail: 'メンバーの削除に失敗しました',
+
+    // Confirm
+    confirm_delete_poll: 'このポールを本当に削除しますか？',
+    confirm_remove_member: 'を削除しますか？',
+
+    // Share text
+    share_cta: '今すぐ参加してください！',
   }
 };
 

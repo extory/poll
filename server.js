@@ -93,8 +93,12 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 `);
 
-// Migration: add cta column if missing (for existing DBs)
+// Migrations for existing DBs
 try { db.exec('ALTER TABLE polls ADD COLUMN cta TEXT'); } catch {}
+try { db.exec('ALTER TABLE polls ADD COLUMN title_en TEXT'); } catch {}
+try { db.exec('ALTER TABLE polls ADD COLUMN title_ja TEXT'); } catch {}
+try { db.exec('ALTER TABLE polls ADD COLUMN description_en TEXT'); } catch {}
+try { db.exec('ALTER TABLE polls ADD COLUMN description_ja TEXT'); } catch {}
 
 
 // -- Middleware --------------------------------------------------------------
@@ -645,82 +649,128 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.
 function seedDefaultPoll() {
   const existing = db.prepare('SELECT id, result_mode FROM polls WHERE id = ?').get('aline-developer-type-quiz');
 
-  // Force update if old seed without result_mode
-  if (existing && existing.result_mode === 'type') return;
+  // Force update: always replace seed to keep translations current
   if (existing) db.prepare('DELETE FROM polls WHERE id = ?').run('aline-developer-type-quiz');
 
   const questions = [
-    { text:'새 프로젝트에 투입됐을 때, 가장 먼저 하는 행동은?', options:[
-      {text:'바로 코드를 짜기 시작한다. 일단 돌아가게 만들고 보자.', scores:{agility:10,stability:2,contribution:5,adaptability:8,consistency:1}},
-      {text:'기존 코드베이스 전체를 꼼꼼히 읽고 구조를 파악한다.', scores:{agility:2,stability:9,contribution:6,adaptability:5,consistency:9}},
-      {text:'팀원들에게 히스토리와 아키텍처 결정 이유를 먼저 물어본다.', scores:{agility:4,stability:6,contribution:10,adaptability:6,consistency:7}},
-      {text:'문서와 이슈를 뒤져서 어디서부터 기여할 수 있는지 찾는다.', scores:{agility:6,stability:4,contribution:8,adaptability:9,consistency:4}},
+    { text:'새 프로젝트에 투입됐을 때, 가장 먼저 하는 행동은?',
+      text_en:'When assigned to a new project, what do you do first?',
+      text_ja:'新しいプロジェクトに配属されたとき、最初にすることは？',
+      options:[
+      {text:'바로 코드를 짜기 시작한다. 일단 돌아가게 만들고 보자.', text_en:'Start coding right away. Make it work first.', text_ja:'すぐにコードを書き始める。まず動くものを作る。', scores:{agility:10,stability:2,contribution:5,adaptability:8,consistency:1}},
+      {text:'기존 코드베이스 전체를 꼼꼼히 읽고 구조를 파악한다.', text_en:'Read through the entire codebase carefully to understand the structure.', text_ja:'既存のコードベース全体を丁寧に読んで構造を把握する。', scores:{agility:2,stability:9,contribution:6,adaptability:5,consistency:9}},
+      {text:'팀원들에게 히스토리와 아키텍처 결정 이유를 먼저 물어본다.', text_en:'Ask teammates about the history and reasons behind architecture decisions.', text_ja:'チームメンバーに履歴やアーキテクチャの決定理由を聞く。', scores:{agility:4,stability:6,contribution:10,adaptability:6,consistency:7}},
+      {text:'문서와 이슈를 뒤져서 어디서부터 기여할 수 있는지 찾는다.', text_en:'Search through docs and issues to find where I can contribute.', text_ja:'ドキュメントやイシューを調べて、どこから貢献できるか探す。', scores:{agility:6,stability:4,contribution:8,adaptability:9,consistency:4}},
     ]},
-    { text:'마감이 이틀 남았는데 기능이 아직 반도 안 됐다. 어떻게 반응하나요?', options:[
-      {text:'오히려 흥분된다. 압박감이 있어야 집중이 잘 된다.', scores:{agility:10,stability:2,contribution:6,adaptability:7,consistency:2}},
-      {text:'냉정하게 스코프를 줄이고 최소한의 동작을 보장한다.', scores:{agility:5,stability:8,contribution:7,adaptability:8,consistency:6}},
-      {text:'팀원들에게 현황을 공유하고 도움을 요청하거나 역할을 나눈다.', scores:{agility:4,stability:5,contribution:10,adaptability:6,consistency:5}},
-      {text:'당황스럽다. 처음부터 계획대로 했다면 이런 일이 없었을 텐데.', scores:{agility:2,stability:9,contribution:4,adaptability:3,consistency:10}},
+    { text:'마감이 이틀 남았는데 기능이 아직 반도 안 됐다. 어떻게 반응하나요?',
+      text_en:'Deadline is in 2 days but the feature is less than half done. How do you react?',
+      text_ja:'締切まであと2日だが、機能はまだ半分もできていない。どう対応する？',
+      options:[
+      {text:'오히려 흥분된다. 압박감이 있어야 집중이 잘 된다.', text_en:'I get excited. Pressure helps me focus better.', text_ja:'むしろワクワクする。プレッシャーがある方が集中できる。', scores:{agility:10,stability:2,contribution:6,adaptability:7,consistency:2}},
+      {text:'냉정하게 스코프를 줄이고 최소한의 동작을 보장한다.', text_en:'Calmly reduce scope and ensure minimum functionality works.', text_ja:'冷静にスコープを縮小し、最低限の動作を保証する。', scores:{agility:5,stability:8,contribution:7,adaptability:8,consistency:6}},
+      {text:'팀원들에게 현황을 공유하고 도움을 요청하거나 역할을 나눈다.', text_en:'Share status with the team and ask for help or divide tasks.', text_ja:'チームに状況を共有し、助けを求めるか役割を分担する。', scores:{agility:4,stability:5,contribution:10,adaptability:6,consistency:5}},
+      {text:'당황스럽다. 처음부터 계획대로 했다면 이런 일이 없었을 텐데.', text_en:'I feel flustered. This wouldn\'t have happened if we followed the plan.', text_ja:'焦る。最初から計画通りにやっていればこんなことにはならなかったのに。', scores:{agility:2,stability:9,contribution:4,adaptability:3,consistency:10}},
     ]},
-    { text:'일주일에 내가 커밋을 올리는 패턴은?', options:[
-      {text:'매일 조금씩. 항상 일정한 페이스를 유지한다.', scores:{agility:4,stability:8,contribution:7,adaptability:5,consistency:10}},
-      {text:'특정 날에 몰아서. 집중하면 하루에 수십 개도 올린다.', scores:{agility:10,stability:3,contribution:7,adaptability:6,consistency:2}},
-      {text:'기능 단위로 완성될 때마다 올린다. 중간 단계는 별로 안 올린다.', scores:{agility:3,stability:9,contribution:6,adaptability:4,consistency:7}},
-      {text:'다른 사람 PR 리뷰하고 머지하는 게 더 많다.', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:6}},
+    { text:'일주일에 내가 커밋을 올리는 패턴은?',
+      text_en:'What\'s your weekly commit pattern?',
+      text_ja:'1週間のコミットパターンは？',
+      options:[
+      {text:'매일 조금씩. 항상 일정한 페이스를 유지한다.', text_en:'A little every day. I keep a steady pace.', text_ja:'毎日少しずつ。常に一定のペースを保つ。', scores:{agility:4,stability:8,contribution:7,adaptability:5,consistency:10}},
+      {text:'특정 날에 몰아서. 집중하면 하루에 수십 개도 올린다.', text_en:'I batch them on certain days. When focused, I push dozens in a day.', text_ja:'特定の日にまとめて。集中すれば1日に数十個もプッシュする。', scores:{agility:10,stability:3,contribution:7,adaptability:6,consistency:2}},
+      {text:'기능 단위로 완성될 때마다 올린다. 중간 단계는 별로 안 올린다.', text_en:'I push when a feature unit is complete. Rarely push intermediate stages.', text_ja:'機能単位で完成したら上げる。中間段階はあまり上げない。', scores:{agility:3,stability:9,contribution:6,adaptability:4,consistency:7}},
+      {text:'다른 사람 PR 리뷰하고 머지하는 게 더 많다.', text_en:'I spend more time reviewing and merging others\' PRs.', text_ja:'他の人のPRをレビューしてマージすることの方が多い。', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:6}},
     ]},
-    { text:'버그 리포트가 들어왔을 때의 첫 반응은?', options:[
-      {text:'원인을 끝까지 파고드는 게 재밌다. 깊이 들어간다.', scores:{agility:5,stability:6,contribution:7,adaptability:7,consistency:5}},
-      {text:'일단 임시 패치로 막고, 근본 원인은 나중에 제대로 파본다.', scores:{agility:9,stability:3,contribution:6,adaptability:8,consistency:2}},
-      {text:'로그, 재현 경로, 영향 범위를 먼저 파악한다.', scores:{agility:4,stability:9,contribution:7,adaptability:6,consistency:8}},
-      {text:'버그가 난 부분을 작성한 사람과 함께 보면서 해결한다.', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:5}},
+    { text:'버그 리포트가 들어왔을 때의 첫 반응은?',
+      text_en:'What\'s your first reaction when a bug report comes in?',
+      text_ja:'バグレポートが来たときの最初の反応は？',
+      options:[
+      {text:'원인을 끝까지 파고드는 게 재밌다. 깊이 들어간다.', text_en:'I enjoy digging deep into the root cause.', text_ja:'原因を最後まで追求するのが楽しい。深く入り込む。', scores:{agility:5,stability:6,contribution:7,adaptability:7,consistency:5}},
+      {text:'일단 임시 패치로 막고, 근본 원인은 나중에 제대로 파본다.', text_en:'Apply a quick patch first, investigate the root cause later.', text_ja:'まず仮パッチで対処し、根本原因は後でちゃんと調べる。', scores:{agility:9,stability:3,contribution:6,adaptability:8,consistency:2}},
+      {text:'로그, 재현 경로, 영향 범위를 먼저 파악한다.', text_en:'First check logs, reproduction steps, and impact scope.', text_ja:'ログ、再現手順、影響範囲をまず把握する。', scores:{agility:4,stability:9,contribution:7,adaptability:6,consistency:8}},
+      {text:'버그가 난 부분을 작성한 사람과 함께 보면서 해결한다.', text_en:'Work together with the person who wrote the buggy code.', text_ja:'バグのある部分を書いた人と一緒に見ながら解決する。', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:5}},
     ]},
-    { text:'팀에서 내가 자연스럽게 맡게 되는 역할은?', options:[
-      {text:'새로운 기술 스택 도입이나 프로토타입 개발.', scores:{agility:10,stability:2,contribution:5,adaptability:9,consistency:2}},
-      {text:'아키텍처 설계와 기술 방향 결정.', scores:{agility:4,stability:8,contribution:9,adaptability:6,consistency:7}},
-      {text:'코드 품질 관리와 리팩터링.', scores:{agility:2,stability:10,contribution:7,adaptability:4,consistency:9}},
-      {text:'코드 리뷰어 또는 팀의 기술 멘토.', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:6}},
+    { text:'팀에서 내가 자연스럽게 맡게 되는 역할은?',
+      text_en:'What role do you naturally take on in a team?',
+      text_ja:'チームで自然と担当する役割は？',
+      options:[
+      {text:'새로운 기술 스택 도입이나 프로토타입 개발.', text_en:'Introducing new tech stacks or prototyping.', text_ja:'新しい技術スタックの導入やプロトタイプ開発。', scores:{agility:10,stability:2,contribution:5,adaptability:9,consistency:2}},
+      {text:'아키텍처 설계와 기술 방향 결정.', text_en:'Architecture design and technical direction.', text_ja:'アーキテクチャ設計と技術方向の決定。', scores:{agility:4,stability:8,contribution:9,adaptability:6,consistency:7}},
+      {text:'코드 품질 관리와 리팩터링.', text_en:'Code quality management and refactoring.', text_ja:'コード品質管理とリファクタリング。', scores:{agility:2,stability:10,contribution:7,adaptability:4,consistency:9}},
+      {text:'코드 리뷰어 또는 팀의 기술 멘토.', text_en:'Code reviewer or team\'s technical mentor.', text_ja:'コードレビュアーまたはチームの技術メンター。', scores:{agility:3,stability:5,contribution:10,adaptability:5,consistency:6}},
     ]},
-    { text:'코드 리뷰할 때 가장 신경 쓰는 부분은?', options:[
-      {text:'동작하는가? 엣지 케이스는 없는가?', scores:{agility:6,stability:7,contribution:7,adaptability:5,consistency:5}},
-      {text:'더 나은 설계 방법은 없는가? 확장성은?', scores:{agility:4,stability:9,contribution:8,adaptability:6,consistency:8}},
-      {text:'새로운 접근법이 있는가? 최신 방법론은 활용했는가?', scores:{agility:9,stability:3,contribution:5,adaptability:10,consistency:2}},
-      {text:'팀원이 성장할 수 있는 피드백을 줄 수 있는가?', scores:{agility:3,stability:4,contribution:10,adaptability:5,consistency:4}},
+    { text:'코드 리뷰할 때 가장 신경 쓰는 부분은?',
+      text_en:'What do you focus on most during code reviews?',
+      text_ja:'コードレビューで最も気にするポイントは？',
+      options:[
+      {text:'동작하는가? 엣지 케이스는 없는가?', text_en:'Does it work? Are there edge cases?', text_ja:'動作するか？エッジケースはないか？', scores:{agility:6,stability:7,contribution:7,adaptability:5,consistency:5}},
+      {text:'더 나은 설계 방법은 없는가? 확장성은?', text_en:'Is there a better design? Is it scalable?', text_ja:'より良い設計方法はないか？拡張性は？', scores:{agility:4,stability:9,contribution:8,adaptability:6,consistency:8}},
+      {text:'새로운 접근법이 있는가? 최신 방법론은 활용했는가?', text_en:'Are there new approaches? Were latest methodologies used?', text_ja:'新しいアプローチはあるか？最新の手法を活用しているか？', scores:{agility:9,stability:3,contribution:5,adaptability:10,consistency:2}},
+      {text:'팀원이 성장할 수 있는 피드백을 줄 수 있는가?', text_en:'Can I give feedback that helps teammates grow?', text_ja:'チームメンバーが成長できるフィードバックを与えられるか？', scores:{agility:3,stability:4,contribution:10,adaptability:5,consistency:4}},
     ]},
-    { text:'이상적인 나의 하루 개발 루틴은?', options:[
-      {text:'오전은 딥워크, 오후는 커뮤니케이션. 패턴이 정해져 있다.', scores:{agility:4,stability:8,contribution:6,adaptability:4,consistency:10}},
-      {text:'그날그날 다르다. 재밌는 것 또는 급한 것부터 한다.', scores:{agility:10,stability:2,contribution:5,adaptability:9,consistency:1}},
-      {text:'팀 스탠드업 후 우선순위 조율하고 협업에 집중한다.', scores:{agility:4,stability:5,contribution:10,adaptability:6,consistency:6}},
-      {text:'이슈/PR 트래킹부터 시작해 안정성을 먼저 확인한다.', scores:{agility:2,stability:9,contribution:7,adaptability:4,consistency:8}},
+    { text:'이상적인 나의 하루 개발 루틴은?',
+      text_en:'What\'s your ideal daily development routine?',
+      text_ja:'理想的な1日の開発ルーティンは？',
+      options:[
+      {text:'오전은 딥워크, 오후는 커뮤니케이션. 패턴이 정해져 있다.', text_en:'Morning deep work, afternoon communication. Fixed pattern.', text_ja:'午前はディープワーク、午後はコミュニケーション。パターンが決まっている。', scores:{agility:4,stability:8,contribution:6,adaptability:4,consistency:10}},
+      {text:'그날그날 다르다. 재밌는 것 또는 급한 것부터 한다.', text_en:'It varies day by day. I start with what\'s fun or urgent.', text_ja:'日によって違う。面白いものか急ぎのものから始める。', scores:{agility:10,stability:2,contribution:5,adaptability:9,consistency:1}},
+      {text:'팀 스탠드업 후 우선순위 조율하고 협업에 집중한다.', text_en:'After standup, align priorities and focus on collaboration.', text_ja:'スタンドアップ後に優先順位を調整し、コラボレーションに集中する。', scores:{agility:4,stability:5,contribution:10,adaptability:6,consistency:6}},
+      {text:'이슈/PR 트래킹부터 시작해 안정성을 먼저 확인한다.', text_en:'Start with issue/PR tracking, check stability first.', text_ja:'イシュー/PRトラッキングから始めて、まず安定性を確認する。', scores:{agility:2,stability:9,contribution:7,adaptability:4,consistency:8}},
     ]},
-    { text:'3개월 뒤 내 코드를 본다면 어떤 상태이길 바라나요?', options:[
-      {text:'그때보다 훨씬 더 나은 방식으로 교체되어 있다. (그게 발전이다)', scores:{agility:9,stability:2,contribution:4,adaptability:10,consistency:2}},
-      {text:'그대로 돌아가고 있다. 안정성이 최고다.', scores:{agility:2,stability:10,contribution:5,adaptability:3,consistency:9}},
-      {text:'주석과 테스트가 잘 달려있어서 팀원이 이어받기 쉽다.', scores:{agility:3,stability:7,contribution:10,adaptability:5,consistency:7}},
-      {text:'새 기술이나 패턴으로 점진적으로 개선되어 있다.', scores:{agility:7,stability:6,contribution:6,adaptability:8,consistency:5}},
+    { text:'3개월 뒤 내 코드를 본다면 어떤 상태이길 바라나요?',
+      text_en:'What state do you hope your code will be in 3 months from now?',
+      text_ja:'3ヶ月後に自分のコードを見たら、どんな状態であってほしい？',
+      options:[
+      {text:'그때보다 훨씬 더 나은 방식으로 교체되어 있다. (그게 발전이다)', text_en:'Replaced with something much better. (That\'s progress)', text_ja:'もっと良い方法に置き換えられている。（それが進歩だ）', scores:{agility:9,stability:2,contribution:4,adaptability:10,consistency:2}},
+      {text:'그대로 돌아가고 있다. 안정성이 최고다.', text_en:'Still running as-is. Stability is king.', text_ja:'そのまま動いている。安定性が一番だ。', scores:{agility:2,stability:10,contribution:5,adaptability:3,consistency:9}},
+      {text:'주석과 테스트가 잘 달려있어서 팀원이 이어받기 쉽다.', text_en:'Well-commented and tested so teammates can easily take over.', text_ja:'コメントとテストがしっかり書かれていて、チームメンバーが引き継ぎやすい。', scores:{agility:3,stability:7,contribution:10,adaptability:5,consistency:7}},
+      {text:'새 기술이나 패턴으로 점진적으로 개선되어 있다.', text_en:'Gradually improved with new tech and patterns.', text_ja:'新しい技術やパターンで段階的に改善されている。', scores:{agility:7,stability:6,contribution:6,adaptability:8,consistency:5}},
     ]},
   ];
 
   const types = {
-    explorer:  { ko:'탐험가', en:'The Explorer', icon:'🧭', color:'#FBBF24', desc:'다양한 기술과 레포지토리를 넘나드는 호기심 넘치는 개발자에요. 새로운 것에 빠르게 적응하고 폭넓은 시야로 문제를 바라봐요.', traits:['높은 민첩성','광범위한 관심사','새로운 시도','실험적 성향'], profile:{agility:88,stability:40,contribution:65,adaptability:90,consistency:35} },
-    sprinter:  { ko:'스프린터', en:'The Sprinter', icon:'⚡', color:'#F97316', desc:'짧고 강렬한 집중력으로 빠르게 결과를 만들어내는 개발자에요. 데드라인이 있을 때 진가를 발휘해요.', traits:['빠른 출시 속도','집중력 폭발','마감 강자','단기 목표 지향'], profile:{agility:90,stability:45,contribution:75,adaptability:70,consistency:30} },
-    builder:   { ko:'빌더', en:'The Builder', icon:'🏗️', color:'#34D399', desc:'안정적이고 꾸준하게 코드를 쌓아가는 개발자에요. 속도보다 품질, 화려함보다 내구성을 추구하는 타입이에요.', traits:['높은 코드 품질','장기 안정성','꾸준한 기여','체계적 접근'], profile:{agility:47,stability:91,contribution:83,adaptability:65,consistency:78} },
-    leader:    { ko:'리더', en:'The Leader', icon:'🎯', color:'#A78BFA', desc:'코드 리뷰, 멘토링, 아키텍처 설계를 통해 팀 전체의 방향을 이끄는 개발자에요.', traits:['코드 리뷰 마스터','팀 기여도 높음','아키텍처 설계','멘토링'], profile:{agility:60,stability:72,contribution:92,adaptability:75,consistency:68} },
-    keeper:    { ko:'키퍼', en:'The Keeper', icon:'🛡️', color:'#38BDF8', desc:'기존 시스템을 유지하고 보호하는 데 탁월한 개발자에요. 기술 부채를 묵묵히 갚아나가는 팀의 숨은 영웅이에요.', traits:['유지보수 전문','기술 부채 해소','코드 이해력','시스템 수호'], profile:{agility:40,stability:88,contribution:70,adaptability:60,consistency:85} },
-    fixer:     { ko:'픽서', en:'The Fixer', icon:'🔧', color:'#F87171', desc:'버그를 사냥하고 인시던트를 해결하는 것에서 희열을 느끼는 개발자에요. 위기 상황에서 가장 빛나는 타입이에요.', traits:['빠른 디버깅','문제 해결 집착','인시던트 대응','높은 집중력'], profile:{agility:75,stability:55,contribution:68,adaptability:80,consistency:50} },
+    explorer: { ko:'탐험가', en:'The Explorer', ja:'探検家', icon:'🧭', color:'#FBBF24',
+      desc:'다양한 기술과 레포지토리를 넘나드는 호기심 넘치는 개발자에요.', desc_en:'A curious developer who explores diverse technologies and repositories.', desc_ja:'多様な技術とリポジトリを渡り歩く好奇心旺盛な開発者です。',
+      traits:['높은 민첩성','광범위한 관심사','새로운 시도','실험적 성향'], traits_en:['High agility','Broad interests','New experiments','Exploratory mindset'], traits_ja:['高い機敏性','幅広い関心','新しい挑戦','実験的な性向'],
+      profile:{agility:88,stability:40,contribution:65,adaptability:90,consistency:35} },
+    sprinter: { ko:'스프린터', en:'The Sprinter', ja:'スプリンター', icon:'⚡', color:'#F97316',
+      desc:'짧고 강렬한 집중력으로 빠르게 결과를 만들어내는 개발자에요.', desc_en:'A developer who delivers fast results with intense, short bursts of focus.', desc_ja:'短く強烈な集中力で素早く結果を出す開発者です。',
+      traits:['빠른 출시 속도','집중력 폭발','마감 강자','단기 목표 지향'], traits_en:['Fast shipping','Burst focus','Deadline master','Short-term goals'], traits_ja:['高速リリース','集中力爆発','締切に強い','短期目標志向'],
+      profile:{agility:90,stability:45,contribution:75,adaptability:70,consistency:30} },
+    builder: { ko:'빌더', en:'The Builder', ja:'ビルダー', icon:'🏗️', color:'#34D399',
+      desc:'안정적이고 꾸준하게 코드를 쌓아가는 개발자에요.', desc_en:'A developer who steadily builds stable, high-quality code.', desc_ja:'安定的で着実にコードを積み重ねる開発者です。',
+      traits:['높은 코드 품질','장기 안정성','꾸준한 기여','체계적 접근'], traits_en:['High code quality','Long-term stability','Steady contributions','Systematic approach'], traits_ja:['高いコード品質','長期安定性','着実な貢献','体系的アプローチ'],
+      profile:{agility:47,stability:91,contribution:83,adaptability:65,consistency:78} },
+    leader: { ko:'리더', en:'The Leader', ja:'リーダー', icon:'🎯', color:'#A78BFA',
+      desc:'코드 리뷰, 멘토링, 아키텍처 설계를 통해 팀을 이끄는 개발자에요.', desc_en:'A developer who leads the team through code reviews, mentoring, and architecture.', desc_ja:'コードレビュー、メンタリング、アーキテクチャ設計でチームを導く開発者です。',
+      traits:['코드 리뷰 마스터','팀 기여도 높음','아키텍처 설계','멘토링'], traits_en:['Code review master','High team contribution','Architecture design','Mentoring'], traits_ja:['コードレビューマスター','チーム貢献度が高い','アーキテクチャ設計','メンタリング'],
+      profile:{agility:60,stability:72,contribution:92,adaptability:75,consistency:68} },
+    keeper: { ko:'키퍼', en:'The Keeper', ja:'キーパー', icon:'🛡️', color:'#38BDF8',
+      desc:'기존 시스템을 유지하고 보호하는 데 탁월한 개발자에요.', desc_en:'A developer who excels at maintaining and protecting existing systems.', desc_ja:'既存システムの保守と保護に優れた開発者です。',
+      traits:['유지보수 전문','기술 부채 해소','코드 이해력','시스템 수호'], traits_en:['Maintenance expert','Tech debt payoff','Code comprehension','System guardian'], traits_ja:['保守専門','技術的負債の解消','コード理解力','システム守護'],
+      profile:{agility:40,stability:88,contribution:70,adaptability:60,consistency:85} },
+    fixer: { ko:'픽서', en:'The Fixer', ja:'フィクサー', icon:'🔧', color:'#F87171',
+      desc:'버그를 사냥하고 인시던트를 해결하는 것에서 희열을 느끼는 개발자에요.', desc_en:'A developer who thrives on hunting bugs and resolving incidents.', desc_ja:'バグを追跡し、インシデントを解決することに喜びを感じる開発者です。',
+      traits:['빠른 디버깅','문제 해결 집착','인시던트 대응','높은 집중력'], traits_en:['Fast debugging','Problem-solving obsession','Incident response','High focus'], traits_ja:['高速デバッグ','問題解決への執着','インシデント対応','高い集中力'],
+      profile:{agility:75,stability:55,contribution:68,adaptability:80,consistency:50} },
   };
 
   const cta = {
     url: 'https://alineteam.kr',
     label_ko: '더 자세한 개발자 프로필 알아보기 →',
     label: 'Learn more about your developer profile →',
+    label_ja: '開発者プロフィールをもっと詳しく →',
     color: 'linear-gradient(135deg, #2563EB, #1E40AF)',
   };
 
-  db.prepare(`INSERT INTO polls (id, title, description, questions, settings, result_mode, types, cta, created_by, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+  db.prepare(`INSERT INTO polls (id, title, title_en, title_ja, description, description_en, description_ja, questions, settings, result_mode, types, cta, created_by, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
     'aline-developer-type-quiz',
     '나는 어떤 개발자일까? — aline.team',
+    'What Kind of Developer Are You? — aline.team',
+    'あなたはどんな開発者？ — aline.team',
     '8개의 질문에 솔직하게 답하면 당신의 개발 스타일과 강점을 분석해드려요.',
+    'Answer 8 questions honestly and we\'ll analyze your development style and strengths.',
+    '8つの質問に正直に答えると、あなたの開発スタイルと強みを分析します。',
     JSON.stringify(questions),
     JSON.stringify({ steps: 8, show_results: true, allow_multiple: false }),
     'type',

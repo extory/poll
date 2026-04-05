@@ -9,11 +9,14 @@
  */
 const i18n = (() => {
   const STORAGE_KEY = 'poll_lang';
-  let currentLang = localStorage.getItem(STORAGE_KEY) || navigator.language?.startsWith('ko') ? 'ko' : 'en';
-  // Always default to stored preference
-  if (localStorage.getItem(STORAGE_KEY)) {
-    currentLang = localStorage.getItem(STORAGE_KEY);
-  }
+  let currentLang = (() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return stored;
+    const nav = navigator.language || '';
+    if (nav.startsWith('ko')) return 'ko';
+    if (nav.startsWith('ja')) return 'ja';
+    return 'en';
+  })();
 
   let translations = {};
 
@@ -65,6 +68,7 @@ const i18n = (() => {
     container.innerHTML = `
       <button class="lang-btn ${currentLang === 'ko' ? 'active' : ''}" data-lang="ko" onclick="i18n.setLang('ko')">KO</button>
       <button class="lang-btn ${currentLang === 'en' ? 'active' : ''}" data-lang="en" onclick="i18n.setLang('en')">EN</button>
+      <button class="lang-btn ${currentLang === 'ja' ? 'active' : ''}" data-lang="ja" onclick="i18n.setLang('ja')">JA</button>
     `;
   }
 

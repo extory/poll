@@ -241,9 +241,22 @@ body {
       <div id="setup-notice" class="hidden" style="margin-bottom:16px">
         <div class="owner-badge">OWNER SETUP</div>
         <p style="font-size:13px;color:var(--muted);margin-top:8px" data-i18n="setup_notice">
-          첫 번째 가입자는 자동으로 오너(Owner)가 됩니다.<br>
-          이후 멤버는 오너의 초대 코드로만 가입할 수 있습니다.
+          첫 번째 어드민 가입자는 자동으로 오너(Owner)가 됩니다.
         </p>
+      </div>
+
+      <!-- Signup type selector -->
+      <div class="form-group">
+        <label class="form-label" data-i18n="label_signup_type">가입 유형</label>
+        <div style="display:flex;gap:8px">
+          <button class="engine-btn selected" id="btn-type-user" onclick="setSignupType('user')" style="flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;text-align:center">
+            <span data-i18n="type_user">일반 사용자</span>
+          </button>
+          <button class="engine-btn" id="btn-type-admin" onclick="setSignupType('admin')" style="flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;text-align:center">
+            <span data-i18n="type_admin">어드민</span>
+          </button>
+        </div>
+        <div class="form-hint" id="signup-type-hint" data-i18n="hint_user_type">폴에 참여하고 결과를 확인할 수 있습니다.</div>
       </div>
 
       <div class="form-group">
@@ -254,7 +267,7 @@ body {
       </div>
       <div class="form-group">
         <label class="form-label" data-i18n="label_email">이메일</label>
-        <input class="form-input" id="signup-email" type="email" placeholder="admin@example.com"
+        <input class="form-input" id="signup-email" type="email" placeholder="user@example.com"
           autocomplete="email">
       </div>
       <div class="form-group">
@@ -263,16 +276,41 @@ body {
           data-i18n-placeholder="ph_password_min" placeholder="6자 이상"
           autocomplete="new-password">
       </div>
-      <div class="form-group" id="invite-group" class="hidden">
+      <div class="form-group hidden" id="invite-group">
         <label class="form-label" data-i18n="label_invite">초대 코드</label>
         <input class="form-input" id="signup-invite" type="text"
           data-i18n-placeholder="ph_invite" placeholder="초대 코드 입력">
         <div class="form-hint" data-i18n="hint_invite">오너로부터 받은 초대 코드를 입력하세요</div>
       </div>
+
+      <!-- Terms agreement -->
+      <div class="form-group" style="margin-bottom:12px">
+        <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--muted)">
+          <input type="checkbox" id="terms-agree" style="margin-top:2px;accent-color:var(--accent)">
+          <span data-i18n="terms_agree">
+            <a href="/terms" target="_blank" style="color:var(--accent)">서비스 이용약관</a> 및
+            <a href="/privacy" target="_blank" style="color:var(--accent)">개인정보 보호정책</a>에 동의합니다.
+          </span>
+        </label>
+      </div>
+
       <button class="btn btn-primary" id="btn-signup" data-i18n="btn_signup" onclick="doSignup()">가입하기</button>
     </div>
     <div class="toggle-link">
       <span data-i18n="has_account">이미 계정이 있으신가요?</span> <a onclick="showLogin()" data-i18n="link_login">로그인</a>
+    </div>
+  </div>
+
+  <!-- Email verification notice -->
+  <div id="verify-notice" class="hidden">
+    <div class="card" style="text-align:center">
+      <div style="font-size:36px;margin-bottom:12px">📧</div>
+      <h3 data-i18n="verify_title" style="margin-bottom:8px">이메일을 확인해주세요</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px" data-i18n="verify_desc">
+        입력하신 이메일로 인증 링크를 발송했습니다. 이메일을 확인하고 링크를 클릭해주세요.
+      </p>
+      <button class="btn btn-primary" onclick="window.location.href='/admin'" data-i18n="verify_continue">계속하기</button>
+      <button class="btn" style="margin-top:8px;width:100%" onclick="resendVerification()" id="btn-resend" data-i18n="verify_resend">인증 메일 재발송</button>
     </div>
   </div>
 </div>
@@ -304,19 +342,22 @@ let isInitialized = false;
     isInitialized = data.initialized;
 
     if (!isInitialized) {
-      // No users yet — show signup for owner setup
       showSignup();
+      setSignupType('admin');
       document.getElementById('setup-notice').classList.remove('hidden');
-      document.getElementById('invite-group').classList.add('hidden');
       document.getElementById('toggle-to-signup').classList.add('hidden');
     }
   } catch {}
 
-  // Check for invite code in URL
+  // Check for invite code or verified in URL
   const params = new URLSearchParams(window.location.search);
   if (params.get('invite')) {
     showSignup();
+    setSignupType('admin');
     document.getElementById('signup-invite').value = params.get('invite');
+  }
+  if (params.get('verified')) {
+    showSuccess(i18n.t('verify_success'));
   }
 
   // Enter key handlers
@@ -346,21 +387,43 @@ function showLogin() {
 function showSignup() {
   document.getElementById('login-form').classList.add('hidden');
   document.getElementById('signup-form').classList.remove('hidden');
+  document.getElementById('verify-notice').classList.add('hidden');
 
-  const titleKey = isInitialized ? 'signup_title' : 'setup_title';
-  const subtitleKey = isInitialized ? 'signup_subtitle' : 'setup_subtitle';
-  document.getElementById('page-title').setAttribute('data-i18n', titleKey);
-  document.getElementById('page-title').textContent = i18n.t(titleKey);
-  document.getElementById('page-subtitle').setAttribute('data-i18n', subtitleKey);
-  document.getElementById('page-subtitle').textContent = i18n.t(subtitleKey);
+  document.getElementById('page-title').textContent = i18n.t('signup_title');
+  document.getElementById('page-subtitle').textContent = i18n.t('signup_subtitle');
+  hideMessages();
+}
 
-  // Show/hide invite field
-  if (isInitialized) {
-    document.getElementById('invite-group').classList.remove('hidden');
-    document.getElementById('setup-notice').classList.add('hidden');
+let signupType = 'user';
+
+function setSignupType(type) {
+  signupType = type;
+  const btnUser = document.getElementById('btn-type-user');
+  const btnAdmin = document.getElementById('btn-type-admin');
+  const hint = document.getElementById('signup-type-hint');
+  const inviteGroup = document.getElementById('invite-group');
+  const setupNotice = document.getElementById('setup-notice');
+
+  btnUser.classList.toggle('selected', type === 'user');
+  btnUser.style.borderColor = type === 'user' ? 'var(--accent)' : 'var(--border)';
+  btnUser.style.color = type === 'user' ? 'var(--accent)' : 'var(--muted)';
+  btnAdmin.classList.toggle('selected', type === 'admin');
+  btnAdmin.style.borderColor = type === 'admin' ? 'var(--accent)' : 'var(--border)';
+  btnAdmin.style.color = type === 'admin' ? 'var(--accent)' : 'var(--muted)';
+
+  if (type === 'admin') {
+    hint.textContent = i18n.t('hint_admin_type');
+    if (isInitialized) {
+      inviteGroup.classList.remove('hidden');
+      setupNotice.classList.add('hidden');
+    } else {
+      inviteGroup.classList.add('hidden');
+      setupNotice.classList.remove('hidden');
+    }
   } else {
-    document.getElementById('invite-group').classList.add('hidden');
-    document.getElementById('setup-notice').classList.remove('hidden');
+    hint.textContent = i18n.t('hint_user_type');
+    inviteGroup.classList.add('hidden');
+    setupNotice.classList.add('hidden');
   }
 }
 
@@ -419,16 +482,18 @@ async function doSignup() {
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
   const invite_code = document.getElementById('signup-invite').value.trim();
+  const termsAgreed = document.getElementById('terms-agree').checked;
 
   if (!email || !password) return showError(i18n.t('err_email_password'));
   if (password.length < 6) return showError(i18n.t('err_password_length'));
+  if (!termsAgreed) return showError(i18n.t('err_terms'));
 
   const btn = document.getElementById('btn-signup');
   btn.disabled = true;
   btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('signing_up');
 
   try {
-    const body = { email, password, name };
+    const body = { email, password, name, signup_type: signupType, terms_agreed: true };
     if (invite_code) body.invite_code = invite_code;
 
     const resp = await fetch('/api/auth/signup', {
@@ -442,7 +507,13 @@ async function doSignup() {
 
     localStorage.setItem('auth_token', data.token);
     localStorage.setItem('auth_user', JSON.stringify(data.user));
-    window.location.href = '/admin';
+    lastSignupEmail = email;
+
+    // Show verification notice
+    document.getElementById('signup-form').classList.add('hidden');
+    document.getElementById('verify-notice').classList.remove('hidden');
+    document.getElementById('page-title').textContent = i18n.t('verify_title');
+    document.getElementById('page-subtitle').textContent = '';
   } catch (err) {
     showError(err.message);
   } finally {
@@ -451,13 +522,32 @@ async function doSignup() {
   }
 }
 
+let lastSignupEmail = '';
+
+async function resendVerification() {
+  if (!lastSignupEmail) return;
+  const btn = document.getElementById('btn-resend');
+  btn.disabled = true;
+  try {
+    await fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: lastSignupEmail }),
+    });
+    btn.textContent = i18n.t('verify_sent');
+    setTimeout(() => { btn.disabled = false; btn.textContent = i18n.t('verify_resend'); }, 30000);
+  } catch {
+    btn.disabled = false;
+  }
+}
+
 // Initialize i18n
 i18n.init({
   ko: {
     login_title: '로그인',
-    login_subtitle: '어드민에 접속하려면 로그인하세요',
+    login_subtitle: '로그인하여 시작하세요',
     signup_title: '가입하기',
-    signup_subtitle: '초대 코드로 가입하세요',
+    signup_subtitle: '계정을 만들고 시작하세요',
     setup_title: '초기 설정',
     setup_subtitle: '첫 번째 관리자 계정을 만드세요',
     setup_notice: '첫 번째 가입자는 자동으로 오너(Owner)가 됩니다.<br>이후 멤버는 오너의 초대 코드로만 가입할 수 있습니다.',
@@ -478,14 +568,27 @@ i18n.init({
     link_login: '로그인',
     err_email_password: '이메일과 비밀번호를 입력하세요',
     err_password_length: '비밀번호는 6자 이상이어야 합니다',
+    err_terms: '서비스 이용약관에 동의해주세요',
     logging_in: '로그인 중...',
     signing_up: '가입 중...',
+    label_signup_type: '가입 유형',
+    type_user: '일반 사용자',
+    type_admin: '어드민',
+    hint_user_type: '폴에 참여하고 결과를 확인할 수 있습니다.',
+    hint_admin_type: '폴을 생성하고 관리할 수 있습니다. 초대 코드가 필요합니다.',
+    terms_agree: '<a href="/terms" target="_blank" style="color:#58A6FF">서비스 이용약관</a> 및 <a href="/privacy" target="_blank" style="color:#58A6FF">개인정보 보호정책</a>에 동의합니다.',
+    verify_title: '이메일을 확인해주세요',
+    verify_desc: '입력하신 이메일로 인증 링크를 발송했습니다. 이메일을 확인하고 링크를 클릭해주세요.',
+    verify_continue: '계속하기',
+    verify_resend: '인증 메일 재발송',
+    verify_sent: '발송 완료!',
+    verify_success: '이메일 인증이 완료되었습니다. 로그인해주세요.',
   },
   en: {
     login_title: 'Login',
-    login_subtitle: 'Sign in to access the admin panel',
+    login_subtitle: 'Sign in to get started',
     signup_title: 'Sign Up',
-    signup_subtitle: 'Sign up with an invite code',
+    signup_subtitle: 'Create an account to get started',
     setup_title: 'Initial Setup',
     setup_subtitle: 'Create the first admin account',
     setup_notice: 'The first user automatically becomes the Owner.<br>Additional members can only sign up with an invite code from the Owner.',
@@ -506,14 +609,27 @@ i18n.init({
     link_login: 'Login',
     err_email_password: 'Please enter your email and password',
     err_password_length: 'Password must be at least 6 characters',
+    err_terms: 'You must agree to the terms of service',
     logging_in: 'Logging in...',
     signing_up: 'Signing up...',
+    label_signup_type: 'Account Type',
+    type_user: 'User',
+    type_admin: 'Admin',
+    hint_user_type: 'Participate in polls and view results.',
+    hint_admin_type: 'Create and manage polls. Invite code required.',
+    terms_agree: 'I agree to the <a href="/terms" target="_blank" style="color:#58A6FF">Terms of Service</a> and <a href="/privacy" target="_blank" style="color:#58A6FF">Privacy Policy</a>.',
+    verify_title: 'Check your email',
+    verify_desc: 'We sent a verification link to your email. Please click the link to verify your account.',
+    verify_continue: 'Continue',
+    verify_resend: 'Resend verification email',
+    verify_sent: 'Sent!',
+    verify_success: 'Email verified successfully. Please log in.',
   },
   ja: {
     login_title: 'ログイン',
-    login_subtitle: '管理画面にアクセスするにはログインしてください',
+    login_subtitle: 'ログインして始めましょう',
     signup_title: '新規登録',
-    signup_subtitle: '招待コードで登録してください',
+    signup_subtitle: 'アカウントを作成して始めましょう',
     setup_title: '初期設定',
     setup_subtitle: '最初の管理者アカウントを作成してください',
     setup_notice: '最初の登録者は自動的にオーナーになります。<br>以降のメンバーはオーナーの招待コードでのみ登録できます。',
@@ -534,8 +650,21 @@ i18n.init({
     link_login: 'ログイン',
     err_email_password: 'メールアドレスとパスワードを入力してください',
     err_password_length: 'パスワードは6文字以上である必要があります',
+    err_terms: '利用規約に同意してください',
     logging_in: 'ログイン中...',
     signing_up: '登録中...',
+    label_signup_type: 'アカウントタイプ',
+    type_user: '一般ユーザー',
+    type_admin: '管理者',
+    hint_user_type: 'アンケートに参加し結果を確認できます。',
+    hint_admin_type: 'アンケートを作成・管理できます。招待コードが必要です。',
+    terms_agree: '<a href="/terms" target="_blank" style="color:#58A6FF">利用規約</a>および<a href="/privacy" target="_blank" style="color:#58A6FF">プライバシーポリシー</a>に同意します。',
+    verify_title: 'メールを確認してください',
+    verify_desc: '入力されたメールアドレスに認証リンクを送信しました。メールを確認してリンクをクリックしてください。',
+    verify_continue: '続ける',
+    verify_resend: '認証メール再送信',
+    verify_sent: '送信完了！',
+    verify_success: 'メール認証が完了しました。ログインしてください。',
   }
 }, 'lang-toggle');
 </script>

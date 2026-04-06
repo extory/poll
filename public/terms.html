@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Terms of Service — Poll Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#0D1117;--surface:#161B22;--text:#E6EDF3;--muted:#7D8590;--accent:#58A6FF;--border:rgba(255,255,255,0.08); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:15px;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,17,23,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:0.06em;text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-right a{font-size:13px;color:var(--muted);text-decoration:none}
+.content{max-width:800px;margin:0 auto;padding:80px 24px 60px}
+h1{font-size:28px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px}
+.updated{font-size:12px;color:var(--muted);margin-bottom:40px}
+h2{font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--accent)}
+p,li{color:#C9D1D9;margin-bottom:8px}
+ul{padding-left:20px}
+a{color:var(--accent)}
+.footer{text-align:center;padding:32px;font-size:12px;color:var(--muted);border-top:1px solid var(--border)}
+.lang-toggle{display:flex;gap:2px;background:rgba(28,35,48,0.8);border-radius:6px;padding:2px}
+.lang-btn{padding:3px 10px;border:none;border-radius:4px;background:transparent;color:#7D8590;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer}
+.lang-btn.active{background:#58A6FF;color:#0D1117}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="/" class="nav-logo">POLL PLATFORM</a>
+  <div class="nav-right">
+    <a href="/privacy" data-i18n="nav_privacy">개인정보 보호정책</a>
+    <div class="lang-toggle" id="lang-toggle"></div>
+  </div>
+</div></nav>
+
+<div class="content">
+  <h1 data-i18n="title">서비스 이용약관</h1>
+  <div class="updated" data-i18n="updated">최종 수정일: 2026년 4월 6일</div>
+
+  <h2 data-i18n="s1_title">1. 서비스 개요</h2>
+  <p data-i18n="s1_body">Poll Platform(이하 "서비스")은 EXTORY(이하 "회사")가 운영하는 온라인 폴/퀴즈 생성 및 관리 플랫폼입니다. 본 약관은 서비스 이용에 관한 조건을 규정합니다.</p>
+
+  <h2 data-i18n="s2_title">2. 계정 등록</h2>
+  <p data-i18n="s2_body">서비스를 이용하려면 유효한 이메일 주소로 계정을 등록해야 합니다. 허위 정보로 등록하거나 타인의 정보를 도용하는 것은 금지됩니다. 어드민 계정은 초대 코드가 필요하며, 최초 어드민은 오너(Owner) 권한을 부여받습니다.</p>
+
+  <h2 data-i18n="s3_title">3. 이용자의 의무</h2>
+  <p data-i18n="s3_body">이용자는 다음 행위를 해서는 안 됩니다:</p>
+  <ul>
+    <li data-i18n="s3_1">법령에 위반되는 콘텐츠 생성 또는 배포</li>
+    <li data-i18n="s3_2">타인의 권리를 침해하는 행위</li>
+    <li data-i18n="s3_3">서비스의 정상적인 운영을 방해하는 행위</li>
+    <li data-i18n="s3_4">자동화된 수단으로 서비스에 무단 접근하는 행위</li>
+  </ul>
+
+  <h2 data-i18n="s4_title">4. 지적 재산권</h2>
+  <p data-i18n="s4_body">서비스의 소프트웨어, 디자인, 상표는 회사에 귀속됩니다. 이용자가 생성한 폴 콘텐츠에 대한 권리는 이용자에게 있으며, 회사는 서비스 제공 목적으로만 해당 콘텐츠를 사용합니다.</p>
+
+  <h2 data-i18n="s5_title">5. 콘텐츠 가이드라인</h2>
+  <p data-i18n="s5_body">불법, 유해, 혐오, 차별적 콘텐츠는 금지됩니다. 회사는 가이드라인을 위반하는 콘텐츠를 사전 통보 없이 삭제할 수 있습니다.</p>
+
+  <h2 data-i18n="s6_title">6. 서비스 제공</h2>
+  <p data-i18n="s6_body">회사는 서비스의 지속적인 제공을 위해 노력하지만, 무중단 운영을 보장하지 않습니다. 시스템 점검, 장애, 불가항력 등으로 서비스가 일시 중단될 수 있습니다.</p>
+
+  <h2 data-i18n="s7_title">7. 책임의 제한</h2>
+  <p data-i18n="s7_body">회사는 서비스 이용으로 발생한 간접적, 우발적, 결과적 손해에 대해 책임을 지지 않습니다. 서비스는 "있는 그대로" 제공됩니다.</p>
+
+  <h2 data-i18n="s8_title">8. 계정 해지</h2>
+  <p data-i18n="s8_body">이용자는 언제든지 계정을 삭제할 수 있습니다. 회사는 약관 위반 시 사전 통보 후 계정을 정지하거나 해지할 수 있습니다.</p>
+
+  <h2 data-i18n="s9_title">9. 약관 변경</h2>
+  <p data-i18n="s9_body">회사는 필요한 경우 본 약관을 변경할 수 있으며, 변경 사항은 서비스 내 공지를 통해 안내됩니다. 변경 후 서비스를 계속 이용하면 변경된 약관에 동의한 것으로 간주합니다.</p>
+
+  <h2 data-i18n="s10_title">10. 문의</h2>
+  <p data-i18n="s10_body">본 약관에 관한 문의는 <a href="mailto:support@extory.co">support@extory.co</a>로 연락해주세요.</p>
+</div>
+
+<div class="footer">Poll Platform by EXTORY</div>
+
+<script src="/i18n.js"></script>
+<script>
+i18n.init({
+  ko: {
+    nav_privacy:'개인정보 보호정책', title:'서비스 이용약관', updated:'최종 수정일: 2026년 4월 6일',
+    s1_title:'1. 서비스 개요', s1_body:'Poll Platform(이하 "서비스")은 EXTORY(이하 "회사")가 운영하는 온라인 폴/퀴즈 생성 및 관리 플랫폼입니다. 본 약관은 서비스 이용에 관한 조건을 규정합니다.',
+    s2_title:'2. 계정 등록', s2_body:'서비스를 이용하려면 유효한 이메일 주소로 계정을 등록해야 합니다. 허위 정보로 등록하거나 타인의 정보를 도용하는 것은 금지됩니다. 어드민 계정은 초대 코드가 필요하며, 최초 어드민은 오너(Owner) 권한을 부여받습니다.',
+    s3_title:'3. 이용자의 의무', s3_body:'이용자는 다음 행위를 해서는 안 됩니다:', s3_1:'법령에 위반되는 콘텐츠 생성 또는 배포', s3_2:'타인의 권리를 침해하는 행위', s3_3:'서비스의 정상적인 운영을 방해하는 행위', s3_4:'자동화된 수단으로 서비스에 무단 접근하는 행위',
+    s4_title:'4. 지적 재산권', s4_body:'서비스의 소프트웨어, 디자인, 상표는 회사에 귀속됩니다. 이용자가 생성한 폴 콘텐츠에 대한 권리는 이용자에게 있으며, 회사는 서비스 제공 목적으로만 해당 콘텐츠를 사용합니다.',
+    s5_title:'5. 콘텐츠 가이드라인', s5_body:'불법, 유해, 혐오, 차별적 콘텐츠는 금지됩니다. 회사는 가이드라인을 위반하는 콘텐츠를 사전 통보 없이 삭제할 수 있습니다.',
+    s6_title:'6. 서비스 제공', s6_body:'회사는 서비스의 지속적인 제공을 위해 노력하지만, 무중단 운영을 보장하지 않습니다. 시스템 점검, 장애, 불가항력 등으로 서비스가 일시 중단될 수 있습니다.',
+    s7_title:'7. 책임의 제한', s7_body:'회사는 서비스 이용으로 발생한 간접적, 우발적, 결과적 손해에 대해 책임을 지지 않습니다. 서비스는 "있는 그대로" 제공됩니다.',
+    s8_title:'8. 계정 해지', s8_body:'이용자는 언제든지 계정을 삭제할 수 있습니다. 회사는 약관 위반 시 사전 통보 후 계정을 정지하거나 해지할 수 있습니다.',
+    s9_title:'9. 약관 변경', s9_body:'회사는 필요한 경우 본 약관을 변경할 수 있으며, 변경 사항은 서비스 내 공지를 통해 안내됩니다. 변경 후 서비스를 계속 이용하면 변경된 약관에 동의한 것으로 간주합니다.',
+    s10_title:'10. 문의', s10_body:'본 약관에 관한 문의는 <a href="mailto:support@extory.co">support@extory.co</a>로 연락해주세요.',
+  },
+  en: {
+    nav_privacy:'Privacy Policy', title:'Terms of Service', updated:'Last updated: April 6, 2026',
+    s1_title:'1. Service Overview', s1_body:'Poll Platform ("Service") is an online poll and quiz creation platform operated by EXTORY ("Company"). These terms govern your use of the Service.',
+    s2_title:'2. Account Registration', s2_body:'You must register with a valid email address to use the Service. Registration with false information or using another person\'s identity is prohibited. Admin accounts require an invite code; the first admin receives Owner privileges.',
+    s3_title:'3. User Obligations', s3_body:'Users must not:', s3_1:'Create or distribute content that violates applicable laws', s3_2:'Infringe on the rights of others', s3_3:'Interfere with the normal operation of the Service', s3_4:'Access the Service through unauthorized automated means',
+    s4_title:'4. Intellectual Property', s4_body:'The Service\'s software, design, and trademarks belong to the Company. Users retain rights to their poll content; the Company uses such content only for Service provision.',
+    s5_title:'5. Content Guidelines', s5_body:'Illegal, harmful, hateful, or discriminatory content is prohibited. The Company may remove violating content without prior notice.',
+    s6_title:'6. Service Availability', s6_body:'The Company strives to provide continuous service but does not guarantee uninterrupted operation. Service may be temporarily suspended for maintenance, technical issues, or force majeure.',
+    s7_title:'7. Limitation of Liability', s7_body:'The Company is not liable for indirect, incidental, or consequential damages arising from use of the Service. The Service is provided "as is."',
+    s8_title:'8. Termination', s8_body:'Users may delete their account at any time. The Company may suspend or terminate accounts for terms violations after prior notice.',
+    s9_title:'9. Changes to Terms', s9_body:'The Company may modify these terms as necessary. Changes will be communicated through the Service. Continued use after changes constitutes acceptance of the modified terms.',
+    s10_title:'10. Contact', s10_body:'For inquiries about these terms, please contact <a href="mailto:support@extory.co">support@extory.co</a>.',
+  },
+  ja: {
+    nav_privacy:'プライバシーポリシー', title:'利用規約', updated:'最終更新日：2026年4月6日',
+    s1_title:'1. サービス概要', s1_body:'Poll Platform（以下「サービス」）はEXTORY（以下「当社」）が運営するオンラインアンケート・クイズ作成プラットフォームです。本規約はサービスの利用条件を定めます。',
+    s2_title:'2. アカウント登録', s2_body:'サービスを利用するには有効なメールアドレスでアカウントを登録する必要があります。虚偽の情報での登録や他人の情報の盗用は禁止されています。管理者アカウントには招待コードが必要で、最初の管理者にはオーナー権限が付与されます。',
+    s3_title:'3. ユーザーの義務', s3_body:'ユーザーは以下の行為をしてはなりません：', s3_1:'法令に違反するコンテンツの作成または配布', s3_2:'他者の権利を侵害する行為', s3_3:'サービスの正常な運営を妨害する行為', s3_4:'自動化された手段でサービスに不正アクセスする行為',
+    s4_title:'4. 知的財産権', s4_body:'サービスのソフトウェア、デザイン、商標は当社に帰属します。ユーザーが作成したアンケートコンテンツの権利はユーザーに帰属し、当社はサービス提供目的でのみ使用します。',
+    s5_title:'5. コンテンツガイドライン', s5_body:'違法、有害、差別的なコンテンツは禁止されています。当社はガイドラインに違反するコンテンツを事前通知なく削除できます。',
+    s6_title:'6. サービス提供', s6_body:'当社はサービスの継続的な提供に努めますが、無中断の運営を保証しません。メンテナンス、障害、不可抗力等によりサービスが一時中断される場合があります。',
+    s7_title:'7. 責任の制限', s7_body:'当社はサービス利用により生じた間接的、偶発的、結果的損害について責任を負いません。サービスは「現状のまま」提供されます。',
+    s8_title:'8. アカウント解除', s8_body:'ユーザーはいつでもアカウントを削除できます。当社は規約違反の場合、事前通知後にアカウントを停止または解除できます。',
+    s9_title:'9. 規約の変更', s9_body:'当社は必要に応じて本規約を変更できます。変更はサービス内の通知を通じて案内されます。変更後もサービスを継続利用した場合、変更された規約に同意したものとみなします。',
+    s10_title:'10. お問い合わせ', s10_body:'本規約に関するお問い合わせは<a href="mailto:support@extory.co">support@extory.co</a>までご連絡ください。',
+  }
+}, 'lang-toggle');
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Poll Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#0D1117;--surface:#161B22;--text:#E6EDF3;--muted:#7D8590;--accent:#58A6FF;--border:rgba(255,255,255,0.08); }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:15px;line-height:1.8}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(13,17,23,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:0.06em;text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:12px}
+.nav-right a{font-size:13px;color:var(--muted);text-decoration:none}
+.content{max-width:800px;margin:0 auto;padding:80px 24px 60px}
+h1{font-size:28px;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px}
+.updated{font-size:12px;color:var(--muted);margin-bottom:40px}
+h2{font-size:18px;font-weight:700;margin:32px 0 12px;color:var(--accent)}
+p,li{color:#C9D1D9;margin-bottom:8px}
+ul{padding-left:20px}
+a{color:var(--accent)}
+.footer{text-align:center;padding:32px;font-size:12px;color:var(--muted);border-top:1px solid var(--border)}
+.lang-toggle{display:flex;gap:2px;background:rgba(28,35,48,0.8);border-radius:6px;padding:2px}
+.lang-btn{padding:3px 10px;border:none;border-radius:4px;background:transparent;color:#7D8590;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer}
+.lang-btn.active{background:#58A6FF;color:#0D1117}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <a href="/" class="nav-logo">POLL PLATFORM</a>
+  <div class="nav-right">
+    <a href="/terms" data-i18n="nav_terms">이용약관</a>
+    <div class="lang-toggle" id="lang-toggle"></div>
+  </div>
+</div></nav>
+
+<div class="content">
+  <h1 data-i18n="title">개인정보 보호정책</h1>
+  <div class="updated" data-i18n="updated">최종 수정일: 2026년 4월 6일</div>
+
+  <h2 data-i18n="s1_title">1. 수집하는 정보</h2>
+  <p data-i18n="s1_body">회사는 서비스 제공을 위해 다음 정보를 수집합니다:</p>
+  <ul>
+    <li data-i18n="s1_1">계정 정보: 이메일 주소, 이름, 비밀번호 (암호화 저장)</li>
+    <li data-i18n="s1_2">폴 응답 데이터: 질문별 선택 결과</li>
+    <li data-i18n="s1_3">이용 데이터: IP 주소, 브라우저 정보, 접속 시간</li>
+  </ul>
+
+  <h2 data-i18n="s2_title">2. 정보 이용 목적</h2>
+  <p data-i18n="s2_body">수집된 정보는 서비스 제공, 계정 관리, 폴 통계 생성, 서비스 개선, 보안 유지 목적으로만 사용됩니다.</p>
+
+  <h2 data-i18n="s3_title">3. 데이터 저장 및 보안</h2>
+  <p data-i18n="s3_body">데이터는 서버의 SQLite 데이터베이스에 저장됩니다. 비밀번호는 bcrypt로 암호화되며, 세션은 토큰 기반으로 관리됩니다. 회사는 적절한 기술적, 관리적 보안 조치를 취합니다.</p>
+
+  <h2 data-i18n="s4_title">4. 제3자 서비스</h2>
+  <p data-i18n="s4_body">AI 폴 생성 기능은 Claude (Anthropic), Gemini (Google), ChatGPT (OpenAI) API를 사용합니다. AI API 키는 사용자의 브라우저 로컬스토리지에만 저장되며, 서버에 보관되지 않습니다. AI 서비스 이용 시 해당 서비스의 개인정보 보호정책이 적용됩니다.</p>
+
+  <h2 data-i18n="s5_title">5. 쿠키 및 로컬스토리지</h2>
+  <p data-i18n="s5_body">서비스는 인증 토큰, 언어 설정, AI API 키를 브라우저 로컬스토리지에 저장합니다. 이는 서비스 이용에 필수적이며, 브라우저 설정에서 삭제할 수 있습니다.</p>
+
+  <h2 data-i18n="s6_title">6. 데이터 보존</h2>
+  <p data-i18n="s6_body">계정 정보는 계정 삭제 시까지 보존됩니다. 폴 응답 데이터는 해당 폴 삭제 시까지 보존됩니다. 계정 삭제를 요청하시면 관련 데이터를 합리적인 기간 내에 삭제합니다.</p>
+
+  <h2 data-i18n="s7_title">7. 이용자 권리</h2>
+  <p data-i18n="s7_body">이용자는 자신의 개인정보에 대해 열람, 수정, 삭제를 요청할 수 있습니다. 요청은 이메일을 통해 접수하며, 본인 확인 후 처리됩니다.</p>
+
+  <h2 data-i18n="s8_title">8. 아동 보호</h2>
+  <p data-i18n="s8_body">서비스는 만 14세 미만 아동을 대상으로 하지 않습니다. 14세 미만 아동의 개인정보가 수집된 것을 인지한 경우 즉시 삭제합니다.</p>
+
+  <h2 data-i18n="s9_title">9. 정책 변경</h2>
+  <p data-i18n="s9_body">회사는 필요한 경우 본 정책을 변경할 수 있으며, 변경 사항은 서비스 내 공지를 통해 안내됩니다.</p>
+
+  <h2 data-i18n="s10_title">10. 문의</h2>
+  <p data-i18n="s10_body">개인정보 관련 문의는 <a href="mailto:privacy@extory.co">privacy@extory.co</a>로 연락해주세요.</p>
+</div>
+
+<div class="footer">Poll Platform by EXTORY</div>
+
+<script src="/i18n.js"></script>
+<script>
+i18n.init({
+  ko: {
+    nav_terms:'이용약관', title:'개인정보 보호정책', updated:'최종 수정일: 2026년 4월 6일',
+    s1_title:'1. 수집하는 정보', s1_body:'회사는 서비스 제공을 위해 다음 정보를 수집합니다:', s1_1:'계정 정보: 이메일 주소, 이름, 비밀번호 (암호화 저장)', s1_2:'폴 응답 데이터: 질문별 선택 결과', s1_3:'이용 데이터: IP 주소, 브라우저 정보, 접속 시간',
+    s2_title:'2. 정보 이용 목적', s2_body:'수집된 정보는 서비스 제공, 계정 관리, 폴 통계 생성, 서비스 개선, 보안 유지 목적으로만 사용됩니다.',
+    s3_title:'3. 데이터 저장 및 보안', s3_body:'데이터는 서버의 SQLite 데이터베이스에 저장됩니다. 비밀번호는 bcrypt로 암호화되며, 세션은 토큰 기반으로 관리됩니다. 회사는 적절한 기술적, 관리적 보안 조치를 취합니다.',
+    s4_title:'4. 제3자 서비스', s4_body:'AI 폴 생성 기능은 Claude (Anthropic), Gemini (Google), ChatGPT (OpenAI) API를 사용합니다. AI API 키는 사용자의 브라우저 로컬스토리지에만 저장되며, 서버에 보관되지 않습니다.',
+    s5_title:'5. 쿠키 및 로컬스토리지', s5_body:'서비스는 인증 토큰, 언어 설정, AI API 키를 브라우저 로컬스토리지에 저장합니다. 이는 서비스 이용에 필수적이며, 브라우저 설정에서 삭제할 수 있습니다.',
+    s6_title:'6. 데이터 보존', s6_body:'계정 정보는 계정 삭제 시까지 보존됩니다. 폴 응답 데이터는 해당 폴 삭제 시까지 보존됩니다.',
+    s7_title:'7. 이용자 권리', s7_body:'이용자는 자신의 개인정보에 대해 열람, 수정, 삭제를 요청할 수 있습니다.',
+    s8_title:'8. 아동 보호', s8_body:'서비스는 만 14세 미만 아동을 대상으로 하지 않습니다.',
+    s9_title:'9. 정책 변경', s9_body:'회사는 필요한 경우 본 정책을 변경할 수 있으며, 변경 사항은 서비스 내 공지를 통해 안내됩니다.',
+    s10_title:'10. 문의', s10_body:'개인정보 관련 문의는 <a href="mailto:privacy@extory.co">privacy@extory.co</a>로 연락해주세요.',
+  },
+  en: {
+    nav_terms:'Terms of Service', title:'Privacy Policy', updated:'Last updated: April 6, 2026',
+    s1_title:'1. Information We Collect', s1_body:'We collect the following information to provide the Service:', s1_1:'Account info: email address, name, password (encrypted)', s1_2:'Poll response data: per-question selections', s1_3:'Usage data: IP address, browser info, access times',
+    s2_title:'2. How We Use Information', s2_body:'Collected information is used solely for service provision, account management, poll analytics, service improvement, and security maintenance.',
+    s3_title:'3. Data Storage & Security', s3_body:'Data is stored in a server-side SQLite database. Passwords are encrypted with bcrypt, and sessions are managed via tokens. We implement appropriate technical and administrative security measures.',
+    s4_title:'4. Third-Party Services', s4_body:'AI poll generation uses Claude (Anthropic), Gemini (Google), and ChatGPT (OpenAI) APIs. AI API keys are stored only in the user\'s browser localStorage and are never stored on our servers.',
+    s5_title:'5. Cookies & Local Storage', s5_body:'The Service stores authentication tokens, language preferences, and AI API keys in browser localStorage. These are essential for service operation and can be cleared via browser settings.',
+    s6_title:'6. Data Retention', s6_body:'Account data is retained until account deletion. Poll response data is retained until the poll is deleted.',
+    s7_title:'7. User Rights', s7_body:'Users may request access to, correction of, or deletion of their personal information.',
+    s8_title:'8. Children\'s Privacy', s8_body:'The Service is not intended for children under 14. If we become aware that personal information of a child under 14 has been collected, we will promptly delete it.',
+    s9_title:'9. Changes to Policy', s9_body:'We may modify this policy as necessary. Changes will be communicated through the Service.',
+    s10_title:'10. Contact', s10_body:'For privacy inquiries, please contact <a href="mailto:privacy@extory.co">privacy@extory.co</a>.',
+  },
+  ja: {
+    nav_terms:'利用規約', title:'プライバシーポリシー', updated:'最終更新日：2026年4月6日',
+    s1_title:'1. 収集する情報', s1_body:'当社はサービス提供のために以下の情報を収集します：', s1_1:'アカウント情報：メールアドレス、名前、パスワード（暗号化保存）', s1_2:'アンケート回答データ：質問ごとの選択結果', s1_3:'利用データ：IPアドレス、ブラウザ情報、アクセス時間',
+    s2_title:'2. 情報の利用目的', s2_body:'収集された情報はサービス提供、アカウント管理、アンケート統計、サービス改善、セキュリティ維持の目的でのみ使用されます。',
+    s3_title:'3. データの保存とセキュリティ', s3_body:'データはサーバーのSQLiteデータベースに保存されます。パスワードはbcryptで暗号化され、セッションはトークンベースで管理されます。',
+    s4_title:'4. 第三者サービス', s4_body:'AIアンケート生成機能はClaude（Anthropic）、Gemini（Google）、ChatGPT（OpenAI）のAPIを使用します。APIキーはユーザーのブラウザのlocalStorageにのみ保存され、サーバーには保管されません。',
+    s5_title:'5. CookieとlocalStorage', s5_body:'サービスは認証トークン、言語設定、AI APIキーをブラウザのlocalStorageに保存します。これはサービス利用に必須であり、ブラウザ設定で削除できます。',
+    s6_title:'6. データ保持', s6_body:'アカウント情報はアカウント削除まで保持されます。アンケート回答データは該当アンケート削除まで保持されます。',
+    s7_title:'7. ユーザーの権利', s7_body:'ユーザーは自分の個人情報について閲覧、修正、削除を要求できます。',
+    s8_title:'8. 児童の保護', s8_body:'サービスは14歳未満の児童を対象としていません。',
+    s9_title:'9. ポリシーの変更', s9_body:'当社は必要に応じて本ポリシーを変更できます。変更はサービス内の通知を通じて案内されます。',
+    s10_title:'10. お問い合わせ', s10_body:'個人情報に関するお問い合わせは<a href="mailto:privacy@extory.co">privacy@extory.co</a>までご連絡ください。',
+  }
+}, 'lang-toggle');
+</script>
+</body>
+</html>

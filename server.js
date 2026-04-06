@@ -12,6 +12,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 const { execSync } = require('child_process');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -32,7 +33,10 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     password TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'member',
+    role TEXT NOT NULL DEFAULT 'user',
+    email_verified INTEGER NOT NULL DEFAULT 0,
+    verification_token TEXT,
+    terms_agreed INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -97,6 +101,11 @@ db.exec(`
 try { db.exec('ALTER TABLE polls ADD COLUMN cta TEXT'); } catch {}
 try { db.exec('ALTER TABLE polls ADD COLUMN title_en TEXT'); } catch {}
 try { db.exec('ALTER TABLE polls ADD COLUMN title_ja TEXT'); } catch {}
+try { db.exec('ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0'); } catch {}
+try { db.exec('ALTER TABLE users ADD COLUMN verification_token TEXT'); } catch {}
+try { db.exec('ALTER TABLE users ADD COLUMN terms_agreed INTEGER NOT NULL DEFAULT 0'); } catch {}
+// Mark existing users as verified
+db.prepare("UPDATE users SET email_verified = 1 WHERE email_verified = 0 AND role IN ('owner','member')").run();
 try { db.exec('ALTER TABLE polls ADD COLUMN description_en TEXT'); } catch {}
 try { db.exec('ALTER TABLE polls ADD COLUMN description_ja TEXT'); } catch {}
 
@@ -160,41 +169,135 @@ function ownerOnly(req, res, next) {
   next();
 }
 
-app.get('/api/auth/status', (req, res) => {
-  const count = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
-  res.json({ initialized: count > 0, user_count: count });
+// -- Email transporter (configure via env vars) ------------------------------
+const mailTransporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+  },
 });
 
+async function sendVerificationEmail(email, token) {
+  const verifyUrl = `${BASE_URL}/api/auth/verify?token=${token}`;
+  const smtpConfigured = process.env.SMTP_USER && process.env.SMTP_PASS;
+
+  if (!smtpConfigured) {
+    console.log(`[Email] SMTP not configured. Verification URL: ${verifyUrl}`);
+    return;
+  }
+
+  await mailTransporter.sendMail({
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: email,
+    subject: 'Poll Platform - Verify your email',
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+        <h2 style="color:#1a1a1a">Email Verification</h2>
+        <p>Click the button below to verify your email address.</p>
+        <a href="${verifyUrl}" style="display:inline-block;padding:12px 32px;background:#2563EB;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;margin:16px 0">Verify Email</a>
+        <p style="color:#666;font-size:13px">If the button doesn't work, copy this URL:<br>${verifyUrl}</p>
+        <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+        <p style="color:#999;font-size:11px">Poll Platform by EXTORY</p>
+      </div>`,
+  });
+  console.log(`[Email] Verification sent to ${email}`);
+}
+
+app.get('/api/auth/status', (_, res) => {
+  const count = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
+  const adminCount = db.prepare("SELECT COUNT(*) as c FROM users WHERE role IN ('owner','member')").get().c;
+  res.json({ initialized: adminCount > 0, user_count: count });
+});
+
+// Signup: role = 'user' (free), role = 'member' (needs invite_code), first admin = 'owner'
 app.post('/api/auth/signup', async (req, res) => {
-  const { email, password, name, invite_code } = req.body;
+  const { email, password, name, invite_code, signup_type, terms_agreed } = req.body;
   if (!email || !password) return res.status(400).json({ error: 'email and password are required' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
-
-  const userCount = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
-  const isFirst = userCount === 0;
+  if (!terms_agreed) return res.status(400).json({ error: 'You must agree to the terms of service' });
 
   if (db.prepare('SELECT id FROM users WHERE email = ?').get(email)) {
     return res.status(409).json({ error: 'Email already registered' });
   }
 
-  if (!isFirst) {
-    if (!invite_code) return res.status(403).json({ error: 'Invite code required' });
-    const invite = db.prepare('SELECT * FROM invites WHERE code = ? AND used = 0').get(invite_code);
-    if (!invite) return res.status(403).json({ error: 'Invalid or expired invite code' });
-    db.prepare('UPDATE invites SET used = 1, used_by = ?, used_at = datetime(\'now\') WHERE code = ?').run(email, invite_code);
+  const isAdminSignup = signup_type === 'admin';
+  let role = 'user';
+
+  if (isAdminSignup) {
+    const adminCount = db.prepare("SELECT COUNT(*) as c FROM users WHERE role IN ('owner','member')").get().c;
+    if (adminCount === 0) {
+      role = 'owner'; // First admin = owner
+    } else {
+      if (!invite_code) return res.status(403).json({ error: 'Invite code required for admin signup' });
+      const invite = db.prepare('SELECT * FROM invites WHERE code = ? AND used = 0').get(invite_code);
+      if (!invite) return res.status(403).json({ error: 'Invalid or expired invite code' });
+      db.prepare("UPDATE invites SET used = 1, used_by = ?, used_at = datetime('now') WHERE code = ?").run(email, invite_code);
+      role = 'member';
+    }
   }
 
   const id = uuidv4();
   const hashedPassword = await bcrypt.hash(password, 10);
-  const role = isFirst ? 'owner' : 'member';
+  const verificationToken = crypto.randomBytes(32).toString('hex');
 
-  db.prepare('INSERT INTO users (id, email, name, password, role) VALUES (?, ?, ?, ?, ?)').run(id, email, name || email.split('@')[0], hashedPassword, role);
+  db.prepare('INSERT INTO users (id, email, name, password, role, verification_token, terms_agreed) VALUES (?, ?, ?, ?, ?, ?, 1)')
+    .run(id, email, name || email.split('@')[0], hashedPassword, role, verificationToken);
 
+  // Send verification email
+  try {
+    await sendVerificationEmail(email, verificationToken);
+  } catch (err) {
+    console.error('[Email Error]', err.message);
+  }
+
+  // Auto-login (but mark as unverified)
   const token = crypto.randomBytes(32).toString('hex');
   db.prepare('INSERT INTO sessions (token, user_id) VALUES (?, ?)').run(token, id);
 
-  console.log(`[Auth] New user: ${email} (${role})`);
-  res.json({ success: true, token, user: { id, email, name: name || email.split('@')[0], role } });
+  const smtpConfigured = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+  console.log(`[Auth] New user: ${email} (${role})${smtpConfigured ? '' : ' [email verification pending - SMTP not configured]'}`);
+  res.json({
+    success: true,
+    token,
+    user: { id, email, name: name || email.split('@')[0], role, email_verified: false },
+    email_verification: smtpConfigured ? 'sent' : 'smtp_not_configured',
+  });
+});
+
+// Email verification endpoint
+app.get('/api/auth/verify', (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send('Missing verification token');
+
+  const user = db.prepare('SELECT * FROM users WHERE verification_token = ?').get(token);
+  if (!user) return res.status(400).send('Invalid or expired verification token');
+
+  db.prepare('UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?').run(user.id);
+  console.log(`[Auth] Email verified: ${user.email}`);
+
+  // Redirect to login with success message
+  res.redirect('/admin/login?verified=1');
+});
+
+// Resend verification email
+app.post('/api/auth/resend-verification', async (req, res) => {
+  const { email } = req.body;
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (user.email_verified) return res.json({ success: true, message: 'Already verified' });
+
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  db.prepare('UPDATE users SET verification_token = ? WHERE id = ?').run(verificationToken, user.id);
+
+  try {
+    await sendVerificationEmail(email, verificationToken);
+    res.json({ success: true, message: 'Verification email sent' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to send email' });
+  }
 });
 
 app.post('/api/auth/login', async (req, res) => {
@@ -221,8 +324,8 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 app.get('/api/auth/me', authMiddleware, (req, res) => {
-  const { id, email, name, role } = req.user;
-  res.json({ id, email, name, role });
+  const { id, email, name, role, email_verified } = req.user;
+  res.json({ id, email, name, role, email_verified: !!email_verified });
 });
 
 app.post('/api/auth/invites', authMiddleware, ownerOnly, (req, res) => {
@@ -636,11 +739,13 @@ app.get('/api/releases', (req, res) => {
 //  PAGE ROUTES
 // ============================================================================
 
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/admin/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
-app.get('/p/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'poll.html')));
-app.get('/quiz', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/admin/login', (_, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/p/:id', (_, res) => res.sendFile(path.join(__dirname, 'public', 'poll.html')));
+app.get('/quiz', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/terms', (_, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));
+app.get('/privacy', (_, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
+app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
 
 // ============================================================================
 //  SEED: Developer type quiz

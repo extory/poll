@@ -790,10 +790,10 @@ app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'landing.ht
 // ============================================================================
 
 function seedDefaultPoll() {
-  const existing = db.prepare('SELECT id, result_mode FROM polls WHERE id = ?').get('aline-developer-type-quiz');
+  const existing = db.prepare('SELECT id, result_mode, cta FROM polls WHERE id = ?').get('aline-developer-type-quiz');
 
-  // Force update: always replace seed to keep translations current
-  if (existing) db.prepare('DELETE FROM polls WHERE id = ?').run('aline-developer-type-quiz');
+  // Only seed if not exists. Never delete existing seed (preserves responses).
+  if (existing) return;
 
   const questions = [
     { text:'새 프로젝트에 투입됐을 때, 가장 먼저 하는 행동은?',

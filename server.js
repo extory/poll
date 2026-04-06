@@ -104,8 +104,8 @@ try { db.exec('ALTER TABLE polls ADD COLUMN title_ja TEXT'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN verification_token TEXT'); } catch {}
 try { db.exec('ALTER TABLE users ADD COLUMN terms_agreed INTEGER NOT NULL DEFAULT 0'); } catch {}
-// Mark existing users as verified
-db.prepare("UPDATE users SET email_verified = 1 WHERE email_verified = 0 AND role IN ('owner','member')").run();
+// Mark existing admin users as verified (only those without a pending verification token)
+db.prepare("UPDATE users SET email_verified = 1 WHERE email_verified = 0 AND role IN ('owner','member') AND verification_token IS NULL").run();
 try { db.exec('ALTER TABLE polls ADD COLUMN description_en TEXT'); } catch {}
 try { db.exec('ALTER TABLE polls ADD COLUMN description_ja TEXT'); } catch {}
 

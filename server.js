@@ -779,11 +779,70 @@ app.get('/api/releases', (req, res) => {
 
 app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/admin/login', (_, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
-app.get('/p/:id', (_, res) => res.sendFile(path.join(__dirname, 'public', 'poll.html')));
+app.get('/p/:id', (req, res) => {
+  // Inject SEO meta tags for crawlers
+  const poll = parsePoll(db.prepare('SELECT * FROM polls WHERE id = ?').get(req.params.id));
+  if (!poll) return res.sendFile(path.join(__dirname, 'public', 'poll.html'));
+
+  let html = fs.readFileSync(path.join(__dirname, 'public', 'poll.html'), 'utf-8');
+  const title = (poll.title_en || poll.title).replace(/"/g, '&quot;');
+  const desc = (poll.description_en || poll.description || '').replace(/"/g, '&quot;').slice(0, 160);
+  const url = `${BASE_URL}/p/${poll.id}`;
+
+  const metaTags = `
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${desc}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:site_name" content="Poll Platform">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${desc}">
+    <meta name="description" content="${desc}">`;
+
+  html = html.replace('</head>', metaTags + '\n</head>');
+  res.send(html);
+});
 app.get('/quiz', (_, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/terms', (_, res) => res.sendFile(path.join(__dirname, 'public', 'terms.html')));
 app.get('/privacy', (_, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+
+// SEO: robots.txt
+app.get('/robots.txt', (_, res) => {
+  res.type('text/plain').send(`User-agent: *
+Allow: /
+Allow: /p/
+Allow: /quiz
+Allow: /terms
+Allow: /privacy
+Disallow: /admin
+Disallow: /admin/login
+Disallow: /api/
+
+Sitemap: ${BASE_URL}/sitemap.xml`);
+});
+
+// SEO: sitemap.xml (dynamic — includes all active polls)
+app.get('/sitemap.xml', (_, res) => {
+  const polls = db.prepare("SELECT id, updated_at FROM polls WHERE status = 'active'").all();
+  const today = new Date().toISOString().slice(0, 10);
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${BASE_URL}/</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>${BASE_URL}/quiz</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>${BASE_URL}/terms</loc><lastmod>2026-04-06</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>${BASE_URL}/privacy</loc><lastmod>2026-04-06</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>`;
+
+  polls.forEach(p => {
+    const mod = p.updated_at ? p.updated_at.slice(0, 10) : today;
+    xml += `\n  <url><loc>${BASE_URL}/p/${p.id}</loc><lastmod>${mod}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`;
+  });
+
+  xml += '\n</urlset>';
+  res.type('application/xml').send(xml);
+});
 
 // ============================================================================
 //  SEED: Developer type quiz

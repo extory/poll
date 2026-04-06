@@ -542,20 +542,9 @@ body {
     <!-- ═══ DASHBOARD ═══ -->
     <div class="panel active" id="panel-dashboard">
       <h1 class="panel-title" data-i18n="dashboard_title">대시보드</h1>
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="stat-polls">0</div>
-          <div class="stat-label" data-i18n="stat_total_polls">전체 폴</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-responses">0</div>
-          <div class="stat-label" data-i18n="stat_total_responses">전체 응답</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value" id="stat-urls">0</div>
-          <div class="stat-label" data-i18n="stat_short_urls">숏 URL</div>
-        </div>
-      </div>
+      <div class="stats-grid" id="stats-grid"></div>
+      <!-- Admin-only extra stats -->
+      <div id="admin-extra-stats" style="display:none"></div>
 
       <h2 style="font-size:16px; font-weight:700; margin-bottom:16px;" data-i18n="recent_polls">최근 폴</h2>
       <div id="recent-polls"></div>
@@ -805,6 +794,9 @@ const translations = {
     // Dashboard
     dashboard_title: '대시보드',
     stat_total_polls: '전체 폴',
+    stat_my_polls: '내 폴',
+    stat_users: '가입자',
+    stat_recent_users: '최근 가입자',
     stat_total_responses: '전체 응답',
     stat_short_urls: '숏 URL',
     recent_polls: '최근 폴',
@@ -946,6 +938,9 @@ const translations = {
     // Dashboard
     dashboard_title: 'Dashboard',
     stat_total_polls: 'Total Polls',
+    stat_my_polls: 'My Polls',
+    stat_users: 'Users',
+    stat_recent_users: 'Recent Users',
     stat_total_responses: 'Total Responses',
     stat_short_urls: 'Short URLs',
     recent_polls: 'Recent Polls',
@@ -1087,6 +1082,9 @@ const translations = {
     // Dashboard
     dashboard_title: 'ダッシュボード',
     stat_total_polls: '全ポール数',
+    stat_my_polls: 'マイポール',
+    stat_users: 'ユーザー数',
+    stat_recent_users: '最近のユーザー',
     stat_total_responses: '全回答数',
     stat_short_urls: 'ショートURL',
     recent_polls: '最近のポール',
@@ -1264,10 +1262,17 @@ async function checkAuth() {
 
     document.getElementById('sidebar-user-name').textContent = currentUser.name;
     document.getElementById('sidebar-user-email').textContent = currentUser.email;
+    const isAdmin = currentUser.role === 'owner' || currentUser.role === 'member';
+    const roleLabels = { owner: 'OWNER', member: 'ADMIN', user: 'USER' };
+    const roleColors = { owner: 'var(--green)', member: 'var(--accent)', user: 'var(--orange)' };
     document.getElementById('sidebar-user-role').innerHTML =
-      currentUser.role === 'owner'
-        ? '<span style="color:var(--green);font-size:10px;font-weight:700">OWNER</span>'
-        : '<span style="color:var(--accent);font-size:10px;font-weight:700">MEMBER</span>';
+      `<span style="color:${roleColors[currentUser.role] || 'var(--muted)'};font-size:10px;font-weight:700">${roleLabels[currentUser.role] || 'USER'}</span>`;
+
+    // Hide member management for non-admin users
+    if (!isAdmin) {
+      const navMembers = document.getElementById('nav-members');
+      if (navMembers) navMembers.style.display = 'none';
+    }
 
     // Hide invite section for non-owners
     if (currentUser.role !== 'owner') {
@@ -1319,21 +1324,57 @@ function showPanel(name) {
    DASHBOARD
 ════════════════════════════════════════════ */
 async function loadDashboard() {
+  const isAdmin = currentUser && (currentUser.role === 'owner' || currentUser.role === 'member');
+  const statsGrid = document.getElementById('stats-grid');
+  const extraStats = document.getElementById('admin-extra-stats');
+
   try {
-    const [polls, urls] = await Promise.all([
-      fetch('/api/polls').then(r => r.json()),
-      authFetch('/api/short-urls').then(r => r.json()),
-    ]);
+    if (isAdmin) {
+      // Admin dashboard: platform-wide stats
+      const [adminStats, myPolls] = await Promise.all([
+        authFetch('/api/admin/stats').then(r => r.json()),
+        authFetch('/api/my/polls').then(r => r.json()),
+      ]);
+      allPolls = myPolls;
 
-    allPolls = polls;
-    const totalResponses = polls.reduce((s, p) => s + (p.response_count || 0), 0);
+      statsGrid.innerHTML = `
+        <div class="stat-card"><div class="stat-value">${adminStats.totalUsers}</div><div class="stat-label">${i18n.t('stat_users')}</div></div>
+        <div class="stat-card"><div class="stat-value">${adminStats.totalPolls}</div><div class="stat-label">${i18n.t('stat_total_polls')}</div></div>
+        <div class="stat-card"><div class="stat-value">${adminStats.totalResponses}</div><div class="stat-label">${i18n.t('stat_total_responses')}</div></div>
+        <div class="stat-card"><div class="stat-value">${adminStats.totalShortUrls}</div><div class="stat-label">${i18n.t('stat_short_urls')}</div></div>
+      `;
 
-    document.getElementById('stat-polls').textContent = polls.length;
-    document.getElementById('stat-responses').textContent = totalResponses;
-    document.getElementById('stat-urls').textContent = urls.length;
+      // Show recent users for admin
+      if (adminStats.recentUsers?.length) {
+        extraStats.style.display = 'block';
+        extraStats.innerHTML = `
+          <h2 style="font-size:16px;font-weight:700;margin:24px 0 12px">${i18n.t('stat_recent_users')}</h2>
+          ${adminStats.recentUsers.map(u => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px">
+              <div><span style="font-weight:700">${escHtml(u.name)}</span> <span style="color:var(--muted)">${escHtml(u.email)}</span></div>
+              <span class="badge ${u.role === 'owner' ? 'badge-active' : u.role === 'member' ? 'badge-active' : 'badge-draft'}">${u.role.toUpperCase()}</span>
+            </div>
+          `).join('')}
+        `;
+      }
+    } else {
+      // User dashboard: own stats only
+      const [myStats, myPolls] = await Promise.all([
+        authFetch('/api/my/stats').then(r => r.json()),
+        authFetch('/api/my/polls').then(r => r.json()),
+      ]);
+      allPolls = myPolls;
+
+      statsGrid.innerHTML = `
+        <div class="stat-card"><div class="stat-value">${myStats.myPolls}</div><div class="stat-label">${i18n.t('stat_my_polls')}</div></div>
+        <div class="stat-card"><div class="stat-value">${myStats.myResponses}</div><div class="stat-label">${i18n.t('stat_total_responses')}</div></div>
+        <div class="stat-card"><div class="stat-value">${myStats.myShortUrls}</div><div class="stat-label">${i18n.t('stat_short_urls')}</div></div>
+      `;
+      extraStats.style.display = 'none';
+    }
 
     const container = document.getElementById('recent-polls');
-    if (!polls.length) {
+    if (!allPolls.length) {
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">📋</div>
@@ -1343,7 +1384,7 @@ async function loadDashboard() {
       return;
     }
 
-    container.innerHTML = polls.slice(0, 5).map(p => pollCard(p)).join('');
+    container.innerHTML = allPolls.slice(0, 5).map(p => pollCard(p)).join('');
   } catch (err) {
     console.error(err);
   }
@@ -1378,7 +1419,10 @@ function pollCard(p) {
    POLLS LIST
 ════════════════════════════════════════════ */
 async function loadPollsList() {
-  const polls = await fetch('/api/polls').then(r => r.json());
+  const isAdmin = currentUser && (currentUser.role === 'owner' || currentUser.role === 'member');
+  const polls = isAdmin
+    ? await fetch('/api/polls').then(r => r.json())
+    : await authFetch('/api/my/polls').then(r => r.json());
   allPolls = polls;
   const container = document.getElementById('polls-list');
 

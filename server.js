@@ -350,12 +350,50 @@ app.delete('/api/auth/members/:id', authMiddleware, ownerOnly, (req, res) => {
 });
 
 // ============================================================================
+//  ADMIN STATS (owner/member only)
+// ============================================================================
+
+app.get('/api/admin/stats', authMiddleware, (req, res) => {
+  const isAdmin = req.user.role === 'owner' || req.user.role === 'member';
+  if (!isAdmin) return res.status(403).json({ error: 'Admin only' });
+
+  const totalUsers = db.prepare('SELECT COUNT(*) as c FROM users').get().c;
+  const totalPolls = db.prepare("SELECT COUNT(*) as c FROM polls WHERE created_by != 'system'").get().c;
+  const totalResponses = db.prepare('SELECT COUNT(*) as c FROM responses').get().c;
+  const totalShortUrls = db.prepare('SELECT COUNT(*) as c FROM short_urls').get().c;
+  const recentUsers = db.prepare('SELECT id, email, name, role, created_at FROM users ORDER BY created_at DESC LIMIT 10').all();
+  const topPolls = db.prepare("SELECT id, title, response_count, created_by, created_at FROM polls WHERE created_by != 'system' ORDER BY response_count DESC LIMIT 10").all();
+
+  res.json({ totalUsers, totalPolls, totalResponses, totalShortUrls, recentUsers, topPolls });
+});
+
+// ============================================================================
 //  POLL CRUD
 // ============================================================================
 
+// Public: list polls (for poll viewer)
 app.get('/api/polls', (req, res) => {
   const rows = db.prepare('SELECT * FROM polls ORDER BY created_at DESC').all();
   res.json(rows.map(parsePoll));
+});
+
+// User's own polls
+app.get('/api/my/polls', authMiddleware, (req, res) => {
+  const rows = db.prepare('SELECT * FROM polls WHERE created_by = ? ORDER BY created_at DESC').all(req.user.id);
+  res.json(rows.map(parsePoll));
+});
+
+// User's own stats
+app.get('/api/my/stats', authMiddleware, (req, res) => {
+  const myPolls = db.prepare('SELECT COUNT(*) as c FROM polls WHERE created_by = ?').get(req.user.id).c;
+  const myPollIds = db.prepare('SELECT id FROM polls WHERE created_by = ?').all(req.user.id).map(r => r.id);
+  let myResponses = 0;
+  if (myPollIds.length) {
+    const placeholders = myPollIds.map(() => '?').join(',');
+    myResponses = db.prepare(`SELECT COUNT(*) as c FROM responses WHERE poll_id IN (${placeholders})`).get(...myPollIds).c;
+  }
+  const myShortUrls = db.prepare('SELECT COUNT(*) as c FROM short_urls WHERE created_by = ?').get(req.user.id).c;
+  res.json({ myPolls, myResponses, myShortUrls });
 });
 
 app.get('/api/polls/:id', (req, res) => {

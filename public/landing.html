@@ -761,7 +761,7 @@ a:hover { text-decoration: underline; }
 
 <!-- Hero -->
 <section class="hero section">
-  <div class="hero-badge">Open Source &middot; Free &middot; Self-hosted</div>
+  <div class="hero-badge" data-i18n="hero_badge">무료 서비스 &middot; 오픈소스 &middot; 설치형 지원</div>
   <h1>
     <span data-i18n="hero_title_1">AI 기반</span><br>
     <span class="gradient">Poll & Quiz Builder</span>
@@ -771,12 +771,12 @@ a:hover { text-decoration: underline; }
   </p>
 
   <div class="hero-buttons">
+    <a href="/admin/login" class="btn btn-primary" data-i18n="hero_btn_start">무료로 시작하기</a>
+    <a href="/p/aline-developer-type-quiz" class="btn btn-outline" data-i18n="hero_btn_demo">데모 체험하기</a>
     <a href="https://github.com/extory/poll" target="_blank" class="btn btn-github">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       GitHub
     </a>
-    <a href="#setup" class="btn btn-primary" data-i18n="hero_btn_setup">설치 가이드 보기</a>
-    <a href="/p/aline-developer-type-quiz" class="btn btn-outline" data-i18n="hero_btn_demo">데모 체험하기</a>
   </div>
 
   <div class="hero-tech">
@@ -821,8 +821,8 @@ a:hover { text-decoration: underline; }
       <p data-i18n="feat_mobile_desc">폴 참여 화면은 모바일에 최적화되어 있습니다. 어디서든 쉽게 참여할 수 있습니다.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">🚀</div>
-      <h3 data-i18n="feat_easy_title">설치 1분</h3>
+      <div class="feature-icon">🌐</div>
+      <h3 data-i18n="feat_easy_title">서비스 & 설치형</h3>
       <p data-i18n="feat_easy_desc">데이터베이스 설정 없이 JSON 파일 기반으로 동작. Node.js만 있으면 바로 시작할 수 있습니다.</p>
     </div>
   </div>
@@ -831,8 +831,9 @@ a:hover { text-decoration: underline; }
 <!-- Setup -->
 <section class="setup" id="setup">
   <div class="setup-header">
-    <h2>Setup Guide</h2>
-    <p data-i18n="setup_sub">3단계면 충분합니다</p>
+    <h2 data-i18n="setup_title">Self-hosted Setup Guide</h2>
+    <p data-i18n="setup_sub">직접 설치하려면 3단계면 충분합니다</p>
+    <p style="font-size:13px;color:var(--accent);margin-top:8px" data-i18n="setup_saas_hint">설치 없이 사용하려면 <a href="/admin/login" style="color:var(--accent);text-decoration:underline">poll.extory.co에서 바로 가입</a>하세요.</p>
   </div>
   <div class="steps">
     <div class="step">
@@ -1018,9 +1019,10 @@ loadReleases();
 
 i18n.init({
   ko: {
+    hero_badge: '무료 서비스 &middot; 오픈소스 &middot; 설치형 지원',
     hero_title_1: 'AI 기반',
-    hero_desc: 'Claude, Gemini 등 AI로 폴을 자동 생성하거나 직접 만들 수 있는 오픈소스 플랫폼. 설치하고 바로 사용하세요.',
-    hero_btn_setup: '설치 가이드 보기',
+    hero_desc: 'AI로 폴과 퀴즈를 손쉽게 만들어 보세요. 가입만 하면 바로 사용할 수 있고, 원하시면 직접 서버에 설치해서 운영할 수도 있습니다.',
+    hero_btn_start: '무료로 시작하기',
     hero_btn_demo: '데모 체험하기',
     features_sub: '폴 생성부터 공유까지 필요한 모든 것',
     feat_ai_title: 'AI 폴 자동 생성',
@@ -1033,9 +1035,11 @@ i18n.init({
     feat_auth_desc: '첫 가입자가 Owner가 됩니다. 이후 멤버는 초대 코드로만 가입 가능. 폴 참여는 인증 불필요.',
     feat_mobile_title: '모바일 최적화',
     feat_mobile_desc: '폴 참여 화면은 모바일에 최적화되어 있습니다. 어디서든 쉽게 참여할 수 있습니다.',
-    feat_easy_title: '설치 1분',
-    feat_easy_desc: '데이터베이스 설정 없이 JSON 파일 기반으로 동작. Node.js만 있으면 바로 시작할 수 있습니다.',
-    setup_sub: '3단계면 충분합니다',
+    feat_easy_title: '서비스 & 설치형',
+    feat_easy_desc: 'poll.extory.co에서 가입 후 바로 사용하거나, GitHub에서 소스를 받아 직접 서버에 설치할 수 있습니다.',
+    setup_title: '설치형 가이드',
+    setup_sub: '직접 설치하려면 3단계면 충분합니다',
+    setup_saas_hint: '설치 없이 사용하려면 <a href="/admin/login" style="color:#58A6FF;text-decoration:underline">poll.extory.co에서 바로 가입</a>하세요.',
     step1_title: '소스 다운로드',
     step1_desc: 'GitHub에서 소스를 클론합니다.',
     step2_title: '환경 설정 (선택)',
@@ -1050,7 +1054,7 @@ i18n.init({
     ai_chatgpt_desc: '<a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a>에서 API 키를 발급받으세요. GPT-4o 모델을 사용합니다.',
     ai_note_title: 'AI 없이도 사용 가능합니다.',
     ai_note_desc: '어드민 대시보드에서 질문과 선택지를 직접 입력하여 폴을 수동으로 만들 수 있습니다. AI는 편의 기능일 뿐, 필수가 아닙니다. API 키는 브라우저 로컬스토리지에만 저장되며 서버에 보관되지 않습니다.',
-    demo_desc: '이 사이트가 Poll Platform으로 운영되고 있습니다. 직접 체험해보세요.',
+    demo_desc: '지금 바로 가입하고 폴을 만들어 보세요. 설치 없이 바로 사용할 수 있습니다.',
     demo_quiz: '개발자 유형 퀴즈 체험',
     demo_admin: '어드민 보기',
     releases_sub: '업데이트 히스토리',
@@ -1061,9 +1065,10 @@ i18n.init({
     footer_about: 'EXTORY는 AI 기반 생산성 도구를 만드는 팀입니다.',
   },
   en: {
+    hero_badge: 'Free Service &middot; Open Source &middot; Self-hosted',
     hero_title_1: 'AI-Powered',
-    hero_desc: 'An open source platform to auto-generate polls with Claude or Gemini, or build them manually. Install and start using right away.',
-    hero_btn_setup: 'Setup Guide',
+    hero_desc: 'Create polls and quizzes effortlessly with AI. Sign up to start instantly, or download and host it on your own server.',
+    hero_btn_start: 'Start Free',
     hero_btn_demo: 'Try Demo',
     features_sub: 'Everything you need from creation to sharing',
     feat_ai_title: 'AI Poll Generation',
@@ -1076,9 +1081,11 @@ i18n.init({
     feat_auth_desc: 'First signup becomes Owner. Additional members join via invite codes only. Poll participation requires no login.',
     feat_mobile_title: 'Mobile Optimized',
     feat_mobile_desc: 'Poll participation screens are optimized for mobile. Easy to respond from anywhere.',
-    feat_easy_title: '1-Minute Setup',
-    feat_easy_desc: 'JSON file-based storage — no database setup required. Just Node.js and you\'re ready.',
-    setup_sub: 'Just 3 steps',
+    feat_easy_title: 'SaaS & Self-hosted',
+    feat_easy_desc: 'Sign up at poll.extory.co and start right away, or download from GitHub and host on your own server.',
+    setup_title: 'Self-hosted Setup Guide',
+    setup_sub: 'To self-host, just 3 steps',
+    setup_saas_hint: 'Want to skip installation? <a href="/admin/login" style="color:#58A6FF;text-decoration:underline">Sign up at poll.extory.co</a> and start instantly.',
     step1_title: 'Download Source',
     step1_desc: 'Clone the source from GitHub.',
     step2_title: 'Configure (Optional)',
@@ -1093,7 +1100,7 @@ i18n.init({
     ai_chatgpt_desc: 'Get your API key from <a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a>. Uses the GPT-4o model.',
     ai_note_title: 'Works without AI.',
     ai_note_desc: 'You can manually create polls by entering questions and options directly in the admin dashboard. AI is a convenience feature, not a requirement. API keys are stored only in browser localStorage — never on the server.',
-    demo_desc: 'This site runs on Poll Platform. Try it out yourself.',
+    demo_desc: 'Sign up now and create your first poll. No installation required.',
     demo_quiz: 'Try Developer Type Quiz',
     demo_admin: 'View Admin',
     releases_sub: 'Update History',
@@ -1104,9 +1111,10 @@ i18n.init({
     footer_about: 'EXTORY builds AI-powered productivity tools.',
   },
   ja: {
+    hero_badge: '無料サービス &middot; オープンソース &middot; セルフホスト対応',
     hero_title_1: 'AI搭載',
-    hero_desc: 'Claude、GeminiなどのAIでポールを自動生成、または手動で作成できるオープンソースプラットフォーム。インストールしてすぐに使えます。',
-    hero_btn_setup: 'セットアップガイド',
+    hero_desc: 'AIでアンケートやクイズを簡単に作成。登録してすぐに使えるほか、ダウンロードして自分のサーバーで運用することもできます。',
+    hero_btn_start: '無料で始める',
     hero_btn_demo: 'デモを試す',
     features_sub: '作成から共有まで必要なすべてを網羅',
     feat_ai_title: 'AIポール自動生成',
@@ -1119,9 +1127,11 @@ i18n.init({
     feat_auth_desc: '最初の登録者がオーナーになります。以降のメンバーは招待コードでのみ登録可能。ポール参加にはログイン不要です。',
     feat_mobile_title: 'モバイル最適化',
     feat_mobile_desc: 'ポール参加画面はモバイルに最適化されています。どこからでも簡単に参加できます。',
-    feat_easy_title: '1分でセットアップ',
-    feat_easy_desc: 'データベース設定不要のJSONファイルベース。Node.jsさえあればすぐに始められます。',
-    setup_sub: '3ステップで完了',
+    feat_easy_title: 'SaaS & セルフホスト',
+    feat_easy_desc: 'poll.extory.coで登録してすぐに使えます。GitHubからダウンロードして自分のサーバーに設置することも可能です。',
+    setup_title: 'セルフホスト ガイド',
+    setup_sub: 'セルフホストなら3ステップで完了',
+    setup_saas_hint: 'インストール不要で使いたい場合は<a href="/admin/login" style="color:#58A6FF;text-decoration:underline">poll.extory.coで登録</a>してすぐに始められます。',
     step1_title: 'ソースをダウンロード',
     step1_desc: 'GitHubからソースをクローンします。',
     step2_title: '環境設定（任意）',
@@ -1136,7 +1146,7 @@ i18n.init({
     ai_chatgpt_desc: '<a href="https://platform.openai.com/" target="_blank">OpenAI Platform</a>からAPIキーを取得してください。GPT-4oモデルを使用します。',
     ai_note_title: 'AIなしでも利用可能です。',
     ai_note_desc: '管理画面で質問と選択肢を直接入力してポールを手動で作成できます。AIは便利な機能であり、必須ではありません。APIキーはブラウザのローカルストレージにのみ保存され、サーバーには保管されません。',
-    demo_desc: 'このサイトはPoll Platformで運営されています。ぜひお試しください。',
+    demo_desc: '今すぐ登録して最初のアンケートを作成しましょう。インストール不要です。',
     demo_quiz: '開発者タイプ診断を試す',
     demo_admin: '管理画面を見る',
     releases_sub: 'アップデート履歴',

@@ -520,31 +520,66 @@ a:hover { text-decoration: underline; }
 /* ── Footer ───────────────────────────────── */
 .footer {
   border-top: 1px solid var(--border);
-  padding: 40px 24px;
-  text-align: center;
+  padding: 48px 24px 32px;
 }
 
 .footer-inner {
   max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
 }
+
+.footer-info h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.footer-info p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.7;
+  opacity: 0.7;
+}
+
+.footer-info a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.footer-info a:hover { text-decoration: underline; }
 
 .footer-links {
   display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin-bottom: 16px;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
 }
 
 .footer-links a {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.footer-copy {
   font-size: 12px;
   color: var(--muted);
-  opacity: 0.6;
+  text-decoration: none;
+}
+.footer-links a:hover { color: var(--text); }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: 24px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+@media (max-width: 600px) {
+  .footer-inner { flex-direction: column; align-items: center; text-align: center; }
+  .footer-links { align-items: center; }
 }
 
 /* ── Responsive ───────────────────────────── */
@@ -909,16 +944,21 @@ a:hover { text-decoration: underline; }
 <!-- Footer -->
 <footer class="footer">
   <div class="footer-inner">
+    <div class="footer-info">
+      <h4>About EXTORY Inc.</h4>
+      <p data-i18n="footer_about">EXTORY는 AI 기반 생산성 도구를 만드는 팀입니다.</p>
+      <p style="margin-top:6px"><a href="https://extory.co" target="_blank">extory.co</a></p>
+    </div>
     <div class="footer-links">
       <a href="https://github.com/extory/poll" target="_blank">GitHub</a>
-      <a href="https://github.com/extory/poll/issues" target="_blank">Issues</a>
+      <a href="https://marketplace.extory.co" target="_blank">Marketplace</a>
       <a href="/admin">Admin</a>
       <a href="/terms" data-i18n="footer_terms">이용약관</a>
       <a href="/privacy" data-i18n="footer_privacy">개인정보 보호정책</a>
-      <a href="https://extory.co" target="_blank">EXTORY</a>
+      <a href="mailto:support@extory.co">Contact</a>
     </div>
-    <div class="footer-copy">MIT License &middot; Built by EXTORY</div>
   </div>
+  <div class="footer-bottom">&copy; 2026 EXTORY Inc. All rights reserved. &middot; MIT License</div>
 </footer>
 
 <script src="/i18n.js"></script>
@@ -1018,6 +1058,7 @@ i18n.init({
     releases_empty: '릴리즈 정보가 없습니다',
     footer_terms: '이용약관',
     footer_privacy: '개인정보 보호정책',
+    footer_about: 'EXTORY는 AI 기반 생산성 도구를 만드는 팀입니다.',
   },
   en: {
     hero_title_1: 'AI-Powered',
@@ -1060,6 +1101,7 @@ i18n.init({
     releases_empty: 'No releases found',
     footer_terms: 'Terms',
     footer_privacy: 'Privacy',
+    footer_about: 'EXTORY builds AI-powered productivity tools.',
   },
   ja: {
     hero_title_1: 'AI搭載',
@@ -1102,6 +1144,7 @@ i18n.init({
     releases_empty: 'リリース情報がありません',
     footer_terms: '利用規約',
     footer_privacy: 'プライバシー',
+    footer_about: 'EXTORYはAIベースの生産性ツールを作るチームです。',
   },
 }, 'lang-toggle');
 </script>

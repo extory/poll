@@ -711,23 +711,21 @@ async function generateImageOpenAI(apiKey, prompt) {
 
 async function generateImageGemini(apiKey, prompt) {
   const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] },
+        instances: [{ prompt }],
+        parameters: { sampleCount: 1, aspectRatio: '1:1' },
       }),
     }
   );
-  if (!resp.ok) throw new Error(`Gemini Image API error (${resp.status}): ${await resp.text()}`);
+  if (!resp.ok) throw new Error(`Imagen API error (${resp.status}): ${await resp.text()}`);
   const data = await resp.json();
-  // Find image part in response
-  const parts = data.candidates?.[0]?.content?.parts || [];
-  const imgPart = parts.find(p => p.inlineData);
-  if (!imgPart) throw new Error('Gemini did not return an image');
-  return Buffer.from(imgPart.inlineData.data, 'base64');
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('Imagen did not return an image');
+  return Buffer.from(b64, 'base64');
 }
 
 // ============================================================================

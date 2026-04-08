@@ -546,19 +546,32 @@ app.post('/api/ai/generate', authMiddleware, async (req, res) => {
   let systemPrompt;
 
   if (result_mode === 'type') {
-    systemPrompt = `You are a personality quiz expert. Create a quiz that determines the user's type.
+    systemPrompt = `You are a personality quiz expert. Create a type-result quiz.
 
-Return ONLY a JSON object (no markdown, no explanation). Structure:
+Return ONLY valid JSON. No markdown fences, no explanation before or after.
 
-{"title":"title","description":"desc","result_mode":"type","types":{"key1":{"ko":"이름","en":"Name","icon":"emoji","color":"#hex","desc":"설명","desc_en":"Description","traits":["tag1","tag2","tag3"],"traits_en":["tag1","tag2","tag3"],"profile":{"t1":80,"t2":40,"t3":60}},"key2":{...}},"questions":[{"text":"질문","text_en":"Question","options":[{"text":"선택지","text_en":"Option","scores":{"t1":8,"t2":3,"t3":5}},{...}]},{...}]}
+{
+  "title": "short title",
+  "description": "one sentence description",
+  "result_mode": "type",
+  "types": {
+    "type_a": {"ko":"한국어명","en":"English","icon":"emoji","color":"#hexcolor","desc":"한국어 설명 1~2문장","desc_en":"English desc 1-2 sentences","traits":["특성1","특성2"],"traits_en":["trait1","trait2"],"profile":{"x":85,"y":30,"z":60}},
+    "type_b": {"ko":"...","en":"...","icon":"...","color":"...","desc":"...","desc_en":"...","traits":["..."],"traits_en":["..."],"profile":{"x":30,"y":85,"z":50}}
+  },
+  "questions": [
+    {"text":"질문?","text_en":"Question?","options":[
+      {"text":"답1","text_en":"Ans1","scores":{"x":8,"y":2,"z":5}},
+      {"text":"답2","text_en":"Ans2","scores":{"x":3,"y":9,"z":4}}
+    ]}
+  ]
+}
 
-Rules:
-- Create 4 result types with emoji icons and distinct hex colors
-- Define exactly 3 scoring traits (short names like "creativity","logic","empathy")
-- Each option scores 1-10 per trait. Type profiles use 0-100.
-- ${numSteps} questions, 3-4 options each
-- Korean text in "text"/"ko"/"desc"/"traits", English in "text_en"/"en"/"desc_en"/"traits_en"
-- Return ONLY the JSON object, nothing else`;
+STRICT RULES:
+- Exactly 4 types, exactly 3 traits, exactly ${numSteps} questions, 3 options each
+- Trait names: single lowercase English words (e.g. action, logic, empathy)
+- Keep ALL string values SHORT (under 50 chars for desc, under 30 chars for options)
+- profile values: 0-100, scores values: 1-10
+- Output ONLY the JSON object`;
   } else {
     // Analytics mode: simple poll
     systemPrompt = `You are a poll/quiz creation expert. Generate a poll based on the user's request.
@@ -625,7 +638,7 @@ async function callGemini(apiKey, systemPrompt, userPrompt) {
   const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ system_instruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: userPrompt }] }], generationConfig: { temperature: 0.8, maxOutputTokens: 4096 } }),
+    body: JSON.stringify({ system_instruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: userPrompt }] }], generationConfig: { temperature: 0.7, maxOutputTokens: 8192, responseMimeType: 'application/json' } }),
   });
   if (!resp.ok) throw new Error(`Gemini API error (${resp.status}): ${await resp.text()}`);
   return (await resp.json()).candidates[0].content.parts[0].text;
@@ -641,8 +654,9 @@ async function callChatGPT(apiKey, systemPrompt, userPrompt) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.8,
-      max_tokens: 4096,
+      temperature: 0.7,
+      max_tokens: 8192,
+      response_format: { type: 'json_object' },
     }),
   });
   if (!resp.ok) throw new Error(`ChatGPT API error (${resp.status}): ${await resp.text()}`);

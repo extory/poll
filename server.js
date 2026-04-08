@@ -546,50 +546,19 @@ app.post('/api/ai/generate', authMiddleware, async (req, res) => {
   let systemPrompt;
 
   if (result_mode === 'type') {
-    // Result type mode: generate questions with scoring + type definitions
-    systemPrompt = `You are a quiz/personality test creation expert. Generate a personality-type quiz.
+    systemPrompt = `You are a personality quiz expert. Create a quiz that determines the user's type.
 
-Return ONLY valid JSON with this exact structure:
-{
-  "title": "quiz title",
-  "description": "brief description",
-  "result_mode": "type",
-  "types": {
-    "type_key": {
-      "ko": "유형 한국어명",
-      "en": "Type English Name",
-      "ja": "タイプ日本語名",
-      "icon": "emoji",
-      "color": "#hexcolor",
-      "desc": "한국어 설명",
-      "desc_en": "English description",
-      "desc_ja": "日本語説明",
-      "traits": ["특성1", "특성2", "특성3"],
-      "traits_en": ["trait1", "trait2", "trait3"],
-      "traits_ja": ["特性1", "特性2", "特性3"],
-      "profile": { "trait_a": 80, "trait_b": 40, ... }
-    }
-  },
-  "questions": [
-    {
-      "text": "질문 텍스트",
-      "text_en": "Question text in English",
-      "text_ja": "日本語の質問",
-      "options": [
-        { "text": "선택지", "text_en": "Option", "text_ja": "選択肢", "scores": { "trait_a": 10, "trait_b": 3, ... } }
-      ]
-    }
-  ]
-}
+Return ONLY a JSON object (no markdown, no explanation). Structure:
 
-IMPORTANT RULES:
-- Create 3-6 result types with distinct profiles
-- Each type must have a unique emoji icon and hex color
-- Define 3-5 scoring traits (e.g. creativity, logic, social, patience, ambition)
-- Each option's scores should range from 1-10 for each trait
-- The "profile" in each type defines the ideal trait values (0-100) for matching via cosine similarity
-- Generate exactly ${numSteps} questions with 3-4 options each
-- All text must include ko, en, ja translations`;
+{"title":"title","description":"desc","result_mode":"type","types":{"key1":{"ko":"이름","en":"Name","icon":"emoji","color":"#hex","desc":"설명","desc_en":"Description","traits":["tag1","tag2","tag3"],"traits_en":["tag1","tag2","tag3"],"profile":{"t1":80,"t2":40,"t3":60}},"key2":{...}},"questions":[{"text":"질문","text_en":"Question","options":[{"text":"선택지","text_en":"Option","scores":{"t1":8,"t2":3,"t3":5}},{...}]},{...}]}
+
+Rules:
+- Create 4 result types with emoji icons and distinct hex colors
+- Define exactly 3 scoring traits (short names like "creativity","logic","empathy")
+- Each option scores 1-10 per trait. Type profiles use 0-100.
+- ${numSteps} questions, 3-4 options each
+- Korean text in "text"/"ko"/"desc"/"traits", English in "text_en"/"en"/"desc_en"/"traits_en"
+- Return ONLY the JSON object, nothing else`;
   } else {
     // Analytics mode: simple poll
     systemPrompt = `You are a poll/quiz creation expert. Generate a poll based on the user's request.
@@ -622,10 +591,20 @@ All text should be in Korean unless the user specifies otherwise.`;
     else if (engine === 'chatgpt') result = await callChatGPT(api_key, systemPrompt, userPrompt);
     else return res.status(400).json({ error: 'Unsupported engine' });
 
-    const jsonMatch = result.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return res.status(500).json({ error: 'AI did not return valid JSON', raw: result });
+    // Try to extract JSON from AI response (may include markdown fences or extra text)
+    let parsed;
+    try {
+      // Remove markdown code fences if present
+      let cleaned = result.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON object found');
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error('[AI Generate] Failed to parse JSON. Raw response:', result.slice(0, 500));
+      return res.status(500).json({ error: 'AI did not return valid JSON', raw: result.slice(0, 300) });
+    }
 
-    res.json({ success: true, poll: JSON.parse(jsonMatch[0]) });
+    res.json({ success: true, poll: parsed });
   } catch (err) {
     console.error('[AI Generate Error]', err.message);
     res.status(500).json({ error: err.message });

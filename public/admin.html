@@ -637,20 +637,16 @@ body {
 
         <div id="questions-editor"></div>
 
-        <div style="margin-top:16px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-primary btn-lg" onclick="savePoll()" style="flex:1" data-i18n="btn_save_poll">
-            폴 저장하기
-          </button>
-          <div style="flex:1;display:flex;gap:6px">
-            <select class="form-select" id="image-style" style="flex:0 0 auto;padding:10px 12px;font-size:12px;border-radius:10px">
-              <option value="realistic" data-i18n="img_realistic">📷 실사형</option>
-              <option value="cartoon" data-i18n="img_cartoon">🎨 카툰형</option>
-            </select>
-            <button class="btn btn-green btn-lg" onclick="generateAllImages()" id="btn-gen-images" style="flex:1" data-i18n="btn_gen_images">
-              🎨 이미지 생성
-            </button>
-          </div>
+        <div style="margin-top:16px; display:flex; gap:10px;">
+          <button class="btn btn-primary btn-lg" onclick="savePoll()" style="flex:1" data-i18n="btn_save_poll">폴 저장하기</button>
           <button class="btn btn-lg" onclick="clearEditor()" data-i18n="btn_reset">초기화</button>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+          <select class="form-select" id="image-style" style="width:auto;padding:8px 12px;font-size:12px;border-radius:8px">
+            <option value="cartoon">🎨 카툰형</option>
+            <option value="realistic">📷 실사형</option>
+          </select>
+          <button class="btn btn-green" onclick="generateAllImages()" id="btn-gen-images" data-i18n="btn_gen_images" style="flex:1">🎨 이미지 생성</button>
         </div>
         <div class="form-hint" id="image-gen-hint" style="text-align:center;margin-top:6px;display:none" data-i18n="hint_image_engine">
           이미지 생성은 ChatGPT, Gemini만 지원합니다. (Claude 미지원)

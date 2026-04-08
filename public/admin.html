@@ -590,9 +590,16 @@ body {
             <input class="form-input" id="ai-steps" type="number" value="5" min="2" max="20">
           </div>
           <div class="form-group">
-            <label class="form-label" data-i18n="label_ai_engine">AI 엔진</label>
-            <div id="engine-display" style="padding:10px;font-size:13px;color:var(--accent);">Claude</div>
+            <label class="form-label" data-i18n="label_result_mode">결과 유형</label>
+            <select class="form-select" id="ai-result-mode" style="padding:10px">
+              <option value="type" data-i18n="mode_type">🎯 결과형 (너는 OO다!)</option>
+              <option value="analytics" data-i18n="mode_analytics">📊 지표분석형 (통계)</option>
+            </select>
           </div>
+        </div>
+
+        <div id="result-mode-hint" style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--green)">
+          <span data-i18n="hint_mode_type">💡 결과형: 답변을 종합하여 "당신은 OO 유형입니다!" 같은 맞춤 결과를 제공합니다.</span>
         </div>
 
         <button class="btn btn-primary btn-lg" onclick="generateWithAI()" id="btn-generate" style="width:100%">
@@ -833,6 +840,11 @@ const translations = {
     btn_gen_images: '🎨 이미지 생성',
     img_realistic: '📷 실사형',
     img_cartoon: '🎨 카툰형',
+    label_result_mode: '결과 유형',
+    mode_type: '🎯 결과형 (너는 OO다!)',
+    mode_analytics: '📊 지표분석형 (통계)',
+    hint_mode_type: '💡 결과형: 답변을 종합하여 "당신은 OO 유형입니다!" 같은 맞춤 결과를 제공합니다.',
+    hint_mode_analytics: '📊 지표분석형: 각 질문의 응답 비율을 통계 차트로 보여줍니다.',
     label_cta: 'CTA 링크 버튼 (선택)',
     ph_cta_label_ko: '버튼 텍스트 (한국어)',
     ph_cta_label_en: '버튼 텍스트 (English)',
@@ -979,6 +991,11 @@ const translations = {
     btn_gen_images: '🎨 Generate Images',
     img_realistic: '📷 Realistic',
     img_cartoon: '🎨 Cartoon',
+    label_result_mode: 'Result Type',
+    mode_type: '🎯 Result Type (You are XX!)',
+    mode_analytics: '📊 Analytics (Statistics)',
+    hint_mode_type: '💡 Result Type: Combines answers to provide a personalized result like "You are the XX type!"',
+    hint_mode_analytics: '📊 Analytics: Shows response rate statistics as charts for each question.',
     label_cta: 'CTA Link Button (Optional)',
     ph_cta_label_ko: 'Button text (Korean)',
     ph_cta_label_en: 'Button text (English)',
@@ -1125,6 +1142,11 @@ const translations = {
     btn_gen_images: '🎨 画像生成',
     img_realistic: '📷 リアル',
     img_cartoon: '🎨 カートゥーン',
+    label_result_mode: '結果タイプ',
+    mode_type: '🎯 結果型（あなたはOOだ！）',
+    mode_analytics: '📊 指標分析型（統計）',
+    hint_mode_type: '💡 結果型：回答を総合して「あなたはOOタイプです！」のようなカスタム結果を提供します。',
+    hint_mode_analytics: '📊 指標分析型：各質問の回答率を統計チャートで表示します。',
     label_cta: 'CTAリンクボタン（任意）',
     ph_cta_label_ko: 'ボタンテキスト（韓国語）',
     ph_cta_label_en: 'ボタンテキスト（English）',
@@ -1459,6 +1481,25 @@ function selectEngine(engine) {
   document.getElementById('engine-display').textContent = names[engine] || engine;
 }
 
+// Result mode hint update
+document.getElementById('ai-result-mode')?.addEventListener('change', function() {
+  const hint = document.getElementById('result-mode-hint');
+  if (this.value === 'type') {
+    hint.innerHTML = '<span data-i18n="hint_mode_type">' + i18n.t('hint_mode_type') + '</span>';
+    hint.style.borderColor = 'rgba(52,211,153,0.2)';
+    hint.style.background = 'rgba(52,211,153,0.08)';
+    hint.style.color = 'var(--green)';
+  } else {
+    hint.innerHTML = '<span data-i18n="hint_mode_analytics">' + i18n.t('hint_mode_analytics') + '</span>';
+    hint.style.borderColor = 'rgba(88,166,255,0.2)';
+    hint.style.background = 'rgba(88,166,255,0.08)';
+    hint.style.color = 'var(--accent)';
+  }
+});
+
+// Store generated type data
+let generatedTypes = null;
+
 async function generateWithAI() {
   const title = document.getElementById('ai-title').value.trim();
   const description = document.getElementById('ai-description').value.trim();
@@ -1476,6 +1517,7 @@ async function generateWithAI() {
   btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('toast_ai_generating');
 
   try {
+    const resultMode = document.getElementById('ai-result-mode').value;
     const resp = await authFetch('/api/ai/generate', {
       method: 'POST',
       body: JSON.stringify({
@@ -1484,6 +1526,7 @@ async function generateWithAI() {
         description,
         steps,
         api_key: apiKey,
+        result_mode: resultMode,
       }),
     });
 
@@ -1495,9 +1538,19 @@ async function generateWithAI() {
     document.getElementById('poll-title').value = poll.title || title;
     document.getElementById('poll-description').value = poll.description || description;
 
+    // Store type data if result mode
+    if (poll.result_mode === 'type' && poll.types) {
+      generatedTypes = poll.types;
+    } else {
+      generatedTypes = null;
+    }
+
     editingQuestions = (poll.questions || []).map(q => ({
-      text: q.text,
-      options: q.options.map(o => ({ text: o.text || o })),
+      text: q.text, text_en: q.text_en, text_ja: q.text_ja,
+      options: q.options.map(o => ({
+        text: o.text || o, text_en: o.text_en, text_ja: o.text_ja,
+        scores: o.scores,
+      })),
     }));
 
     renderQuestions();
@@ -1586,6 +1639,7 @@ function removeOption(qIdx, oIdx) {
 
 function clearEditor() {
   editingQuestions = [];
+  generatedTypes = null;
   document.getElementById('poll-title').value = '';
   document.getElementById('poll-description').value = '';
   document.getElementById('cta-label-ko').value = '';
@@ -1666,12 +1720,20 @@ async function savePoll() {
     if (validOpts.length < 2) return toast(`Q${i + 1}${i18n.t('toast_min_options')}`, 'error');
   }
 
-  // Clean (preserve image_url if exists)
+  // Clean (preserve image_url, scores, translations)
   const questions = editingQuestions.map(q => {
     const cleaned = {
       text: q.text.trim(),
-      options: q.options.filter(o => o.text.trim()).map(o => ({ text: o.text.trim() })),
+      options: q.options.filter(o => o.text.trim()).map(o => {
+        const opt = { text: o.text.trim() };
+        if (o.text_en) opt.text_en = o.text_en;
+        if (o.text_ja) opt.text_ja = o.text_ja;
+        if (o.scores) opt.scores = o.scores;
+        return opt;
+      }),
     };
+    if (q.text_en) cleaned.text_en = q.text_en;
+    if (q.text_ja) cleaned.text_ja = q.text_ja;
     if (q.image_url) cleaned.image_url = q.image_url;
     return cleaned;
   });
@@ -1690,6 +1752,10 @@ async function savePoll() {
   try {
     const body = { title, description, questions };
     if (cta) body.cta = cta;
+    if (generatedTypes) {
+      body.result_mode = 'type';
+      body.types = generatedTypes;
+    }
 
     const resp = await authFetch('/api/polls', {
       method: 'POST',

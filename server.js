@@ -539,11 +539,60 @@ app.get('/api/results/:id', (req, res) => {
 // ============================================================================
 
 app.post('/api/ai/generate', authMiddleware, async (req, res) => {
-  const { engine, title, description, steps, api_key } = req.body;
+  const { engine, title, description, steps, api_key, result_mode } = req.body;
   if (!engine || !title || !api_key) return res.status(400).json({ error: 'engine, title, api_key are required' });
 
   const numSteps = steps || 5;
-  const systemPrompt = `You are a poll/quiz creation expert. Generate a poll based on the user's request.
+  let systemPrompt;
+
+  if (result_mode === 'type') {
+    // Result type mode: generate questions with scoring + type definitions
+    systemPrompt = `You are a quiz/personality test creation expert. Generate a personality-type quiz.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "title": "quiz title",
+  "description": "brief description",
+  "result_mode": "type",
+  "types": {
+    "type_key": {
+      "ko": "유형 한국어명",
+      "en": "Type English Name",
+      "ja": "タイプ日本語名",
+      "icon": "emoji",
+      "color": "#hexcolor",
+      "desc": "한국어 설명",
+      "desc_en": "English description",
+      "desc_ja": "日本語説明",
+      "traits": ["특성1", "특성2", "특성3"],
+      "traits_en": ["trait1", "trait2", "trait3"],
+      "traits_ja": ["特性1", "特性2", "特性3"],
+      "profile": { "trait_a": 80, "trait_b": 40, ... }
+    }
+  },
+  "questions": [
+    {
+      "text": "질문 텍스트",
+      "text_en": "Question text in English",
+      "text_ja": "日本語の質問",
+      "options": [
+        { "text": "선택지", "text_en": "Option", "text_ja": "選択肢", "scores": { "trait_a": 10, "trait_b": 3, ... } }
+      ]
+    }
+  ]
+}
+
+IMPORTANT RULES:
+- Create 3-6 result types with distinct profiles
+- Each type must have a unique emoji icon and hex color
+- Define 3-5 scoring traits (e.g. creativity, logic, social, patience, ambition)
+- Each option's scores should range from 1-10 for each trait
+- The "profile" in each type defines the ideal trait values (0-100) for matching via cosine similarity
+- Generate exactly ${numSteps} questions with 3-4 options each
+- All text must include ko, en, ja translations`;
+  } else {
+    // Analytics mode: simple poll
+    systemPrompt = `You are a poll/quiz creation expert. Generate a poll based on the user's request.
 Return ONLY valid JSON with this exact structure:
 {
   "title": "poll title",
@@ -562,8 +611,9 @@ Return ONLY valid JSON with this exact structure:
 }
 Generate exactly ${numSteps} questions. Each question must have 2-5 options.
 All text should be in Korean unless the user specifies otherwise.`;
+  }
 
-  const userPrompt = `제목: ${title}\n${description ? `설명: ${description}` : ''}\n질문 수: ${numSteps}개`;
+  const userPrompt = `제목: ${title}\n${description ? `설명: ${description}` : ''}\n질문 수: ${numSteps}개\n${result_mode === 'type' ? '결과 유형 수: 4~6개' : ''}`;
 
   try {
     let result;

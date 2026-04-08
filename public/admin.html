@@ -641,9 +641,15 @@ body {
           <button class="btn btn-primary btn-lg" onclick="savePoll()" style="flex:1" data-i18n="btn_save_poll">
             폴 저장하기
           </button>
-          <button class="btn btn-green btn-lg" onclick="generateAllImages()" id="btn-gen-images" style="flex:1" data-i18n="btn_gen_images">
-            🎨 질문별 이미지 생성
-          </button>
+          <div style="flex:1;display:flex;gap:6px">
+            <select class="form-select" id="image-style" style="flex:0 0 auto;padding:10px 12px;font-size:12px;border-radius:10px">
+              <option value="realistic" data-i18n="img_realistic">📷 실사형</option>
+              <option value="cartoon" data-i18n="img_cartoon">🎨 카툰형</option>
+            </select>
+            <button class="btn btn-green btn-lg" onclick="generateAllImages()" id="btn-gen-images" style="flex:1" data-i18n="btn_gen_images">
+              🎨 이미지 생성
+            </button>
+          </div>
           <button class="btn btn-lg" onclick="clearEditor()" data-i18n="btn_reset">초기화</button>
         </div>
         <div class="form-hint" id="image-gen-hint" style="text-align:center;margin-top:6px;display:none" data-i18n="hint_image_engine">
@@ -828,7 +834,9 @@ const translations = {
     placeholder_poll_desc: '간단한 설명',
     btn_save_poll: '폴 저장하기',
     btn_reset: '초기화',
-    btn_gen_images: '🎨 질문별 이미지 생성',
+    btn_gen_images: '🎨 이미지 생성',
+    img_realistic: '📷 실사형',
+    img_cartoon: '🎨 카툰형',
     label_cta: 'CTA 링크 버튼 (선택)',
     ph_cta_label_ko: '버튼 텍스트 (한국어)',
     ph_cta_label_en: '버튼 텍스트 (English)',
@@ -973,6 +981,8 @@ const translations = {
     btn_save_poll: 'Save Poll',
     btn_reset: 'Reset',
     btn_gen_images: '🎨 Generate Images',
+    img_realistic: '📷 Realistic',
+    img_cartoon: '🎨 Cartoon',
     label_cta: 'CTA Link Button (Optional)',
     ph_cta_label_ko: 'Button text (Korean)',
     ph_cta_label_en: 'Button text (English)',
@@ -1116,7 +1126,9 @@ const translations = {
     placeholder_poll_desc: '簡単な説明',
     btn_save_poll: 'ポールを保存',
     btn_reset: 'リセット',
-    btn_gen_images: '🎨 質問ごとの画像を生成',
+    btn_gen_images: '🎨 画像生成',
+    img_realistic: '📷 リアル',
+    img_cartoon: '🎨 カートゥーン',
     label_cta: 'CTAリンクボタン（任意）',
     ph_cta_label_ko: 'ボタンテキスト（韓国語）',
     ph_cta_label_en: 'ボタンテキスト（English）',
@@ -1608,12 +1620,14 @@ async function generateAllImages() {
   btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('generating_images');
 
   try {
+    const imageStyle = document.getElementById('image-style').value;
     const resp = await authFetch('/api/ai/generate-poll-images', {
       method: 'POST',
       body: JSON.stringify({
         engine: selectedEngine,
         api_key: apiKey,
         questions: questionsWithText.map(q => ({ text: q.text })),
+        style: imageStyle,
       }),
     });
 

@@ -666,12 +666,16 @@ app.post('/api/ai/generate-poll-images', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Claude does not support image generation. Use ChatGPT or Gemini.' });
   }
 
-  const styleHint = style || 'flat illustration, minimal, modern, vibrant colors, white background';
+  const stylePresets = {
+    realistic: 'photorealistic, high quality photograph, natural lighting, detailed, professional photography',
+    cartoon: 'cartoon illustration, colorful, fun, playful, flat design, cute characters, vibrant colors',
+  };
+  const styleHint = stylePresets[style] || stylePresets.cartoon;
 
   try {
     const results = [];
     for (const q of questions) {
-      const prompt = `Create a simple illustration for this poll question: "${q.text}". Style: ${styleHint}. No text in the image.`;
+      const prompt = `Create an image for this poll question: "${q.text}". Style: ${styleHint}. No text or letters in the image.`;
       let imageBuffer;
       if (engine === 'chatgpt') imageBuffer = await generateImageOpenAI(api_key, prompt);
       else imageBuffer = await generateImageGemini(api_key, prompt);

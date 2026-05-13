@@ -750,6 +750,15 @@ body {
         <div id="detail-stats"></div>
       </div>
 
+      <!-- Poll Logic (only for result-type polls) -->
+      <div class="card" id="detail-logic-card" style="display:none">
+        <div class="card-header">
+          <span class="card-title">🧠 <span data-i18n="logic_title">폴 로직</span></span>
+          <button class="btn" onclick="toggleLogicPanel()" id="btn-toggle-logic" data-i18n="logic_show">자세히 보기</button>
+        </div>
+        <div id="detail-logic" style="display:none;margin-top:16px"></div>
+      </div>
+
       <!-- Actions -->
       <div style="display:flex;gap:10px;margin-top:16px">
         <button class="btn btn-danger" onclick="deletePoll()" data-i18n="btn_delete">삭제</button>
@@ -845,6 +854,16 @@ const translations = {
     mode_analytics: '📊 지표분석형 (통계)',
     hint_mode_type: '💡 결과형: 답변을 종합하여 "당신은 OO 유형입니다!" 같은 맞춤 결과를 제공합니다.',
     hint_mode_analytics: '📊 지표분석형: 각 질문의 응답 비율을 통계 차트로 보여줍니다.',
+    logic_title: '폴 로직',
+    logic_show: '자세히 보기',
+    logic_hide: '접기',
+    logic_algorithm: '🧮 매칭 알고리즘',
+    logic_algorithm_desc: '사용자가 선택한 답변의 각 특성(trait) 점수를 합산하여 0~100으로 정규화한 후, 각 결과 유형의 프로필과 코사인 유사도(Cosine Similarity)로 비교하여 가장 유사한 유형을 결과로 보여줍니다.',
+    logic_types: '결과 유형',
+    logic_scoring: '📊 질문별 스코어링 매트릭스',
+    logic_option: '선택지',
+    logic_simulator: '🎲 결과 시뮬레이션',
+    logic_simulator_desc: '각 선택지의 점수가 사용자의 누적 점수에 더해지고, 모든 질문이 끝나면 누적 점수와 유형 프로필 간 코사인 유사도를 계산해 가장 가까운 유형으로 결과가 결정됩니다.',
     label_cta: 'CTA 링크 버튼 (선택)',
     ph_cta_label_ko: '버튼 텍스트 (한국어)',
     ph_cta_label_en: '버튼 텍스트 (English)',
@@ -996,6 +1015,16 @@ const translations = {
     mode_analytics: '📊 Analytics (Statistics)',
     hint_mode_type: '💡 Result Type: Combines answers to provide a personalized result like "You are the XX type!"',
     hint_mode_analytics: '📊 Analytics: Shows response rate statistics as charts for each question.',
+    logic_title: 'Poll Logic',
+    logic_show: 'Show Details',
+    logic_hide: 'Collapse',
+    logic_algorithm: '🧮 Matching Algorithm',
+    logic_algorithm_desc: 'Trait scores from the user\'s selected answers are summed and normalized to 0-100. Each result type\'s profile is then compared via Cosine Similarity, and the closest matching type is returned as the result.',
+    logic_types: 'Result Types',
+    logic_scoring: '📊 Question Scoring Matrix',
+    logic_option: 'Option',
+    logic_simulator: '🎲 Result Simulation',
+    logic_simulator_desc: 'Each option\'s scores accumulate into the user\'s total. After all questions, cosine similarity between the totals and each type\'s profile determines the closest matching type.',
     label_cta: 'CTA Link Button (Optional)',
     ph_cta_label_ko: 'Button text (Korean)',
     ph_cta_label_en: 'Button text (English)',
@@ -1147,6 +1176,16 @@ const translations = {
     mode_analytics: '📊 指標分析型（統計）',
     hint_mode_type: '💡 結果型：回答を総合して「あなたはOOタイプです！」のようなカスタム結果を提供します。',
     hint_mode_analytics: '📊 指標分析型：各質問の回答率を統計チャートで表示します。',
+    logic_title: 'ポールロジック',
+    logic_show: '詳細を見る',
+    logic_hide: '折りたたむ',
+    logic_algorithm: '🧮 マッチングアルゴリズム',
+    logic_algorithm_desc: 'ユーザーが選択した回答の各特性スコアを合計し0~100に正規化した後、各結果タイプのプロファイルとコサイン類似度（Cosine Similarity）で比較し、最も類似したタイプを結果として表示します。',
+    logic_types: '結果タイプ',
+    logic_scoring: '📊 質問別スコアリングマトリックス',
+    logic_option: '選択肢',
+    logic_simulator: '🎲 結果シミュレーション',
+    logic_simulator_desc: '各選択肢のスコアがユーザーの累積スコアに加算され、すべての質問が終わると累積スコアとタイププロファイル間のコサイン類似度を計算し、最も近いタイプとして結果が決定されます。',
     label_cta: 'CTAリンクボタン（任意）',
     ph_cta_label_ko: 'ボタンテキスト（韓国語）',
     ph_cta_label_en: 'ボタンテキスト（English）',
@@ -1831,10 +1870,128 @@ async function viewPollDetail(pollId) {
 
       statsDiv.innerHTML = html;
     }
+
+    // Show logic panel for type-result polls
+    currentPollData = poll;
+    const logicCard = document.getElementById('detail-logic-card');
+    if (poll.result_mode === 'type' && poll.types) {
+      logicCard.style.display = 'block';
+      document.getElementById('detail-logic').style.display = 'none';
+      document.getElementById('btn-toggle-logic').textContent = i18n.t('logic_show');
+    } else {
+      logicCard.style.display = 'none';
+    }
   } catch (err) {
     toast(i18n.t('toast_data_load_fail'), 'error');
     console.error(err);
   }
+}
+
+let currentPollData = null;
+
+function toggleLogicPanel() {
+  const panel = document.getElementById('detail-logic');
+  const btn = document.getElementById('btn-toggle-logic');
+  if (panel.style.display === 'none') {
+    renderLogicPanel();
+    panel.style.display = 'block';
+    btn.textContent = i18n.t('logic_hide');
+  } else {
+    panel.style.display = 'none';
+    btn.textContent = i18n.t('logic_show');
+  }
+}
+
+function renderLogicPanel() {
+  if (!currentPollData || !currentPollData.types) return;
+  const poll = currentPollData;
+  const types = poll.types;
+  const traitKeys = Object.keys(Object.values(types)[0]?.profile || {});
+
+  // 1) Algorithm explanation
+  let html = `
+    <div style="background:rgba(88,166,255,0.06);border:1px solid rgba(88,166,255,0.2);border-radius:10px;padding:14px;margin-bottom:20px">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px">${i18n.t('logic_algorithm')}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">${i18n.t('logic_algorithm_desc')}</div>
+    </div>`;
+
+  // 2) Types with profiles
+  html += `<div style="font-size:13px;font-weight:700;margin-bottom:10px">${i18n.t('logic_types')} (${Object.keys(types).length})</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:24px">`;
+  Object.entries(types).forEach(([key, t]) => {
+    const traits = (t.traits || []).map(tr =>
+      `<span style="display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;color:${t.color};border:1px solid ${t.color}66;background:${t.color}11;margin:2px">${escHtml(tr)}</span>`
+    ).join('');
+    const profileBars = traitKeys.map(tk => {
+      const v = t.profile?.[tk] || 0;
+      return `
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span style="width:60px;font-size:9px;color:var(--muted);text-transform:uppercase">${tk}</span>
+          <div style="flex:1;height:4px;background:var(--bg);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${v}%;background:${t.color}"></div>
+          </div>
+          <span style="width:24px;text-align:right;font-family:'Space Mono';font-size:10px;color:${t.color}">${v}</span>
+        </div>`;
+    }).join('');
+
+    html += `
+      <div style="background:var(--bg);border:1px solid ${t.color}44;border-radius:10px;padding:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:24px">${t.icon || '✨'}</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:${t.color}">${escHtml(t.ko || key)}</div>
+            <div style="font-family:'Space Mono';font-size:10px;color:var(--muted)">${escHtml(t.en || key)}</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#C9D1D9;margin-bottom:8px;line-height:1.5">${escHtml(t.desc || '')}</div>
+        <div style="margin-bottom:8px">${traits}</div>
+        ${profileBars}
+      </div>`;
+  });
+  html += `</div>`;
+
+  // 3) Scoring matrix per question
+  html += `<div style="font-size:13px;font-weight:700;margin-bottom:10px">${i18n.t('logic_scoring')}</div>`;
+
+  poll.questions.forEach((q, qi) => {
+    html += `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:8px">Q${qi+1}. ${escHtml(q.text)}</div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead>
+              <tr style="color:var(--muted);text-align:left">
+                <th style="padding:6px;border-bottom:1px solid var(--border);width:28px">#</th>
+                <th style="padding:6px;border-bottom:1px solid var(--border)">${i18n.t('logic_option')}</th>
+                ${traitKeys.map(tk => `<th style="padding:6px;border-bottom:1px solid var(--border);text-align:center;text-transform:uppercase;width:54px">${tk}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${q.options.map((opt, oi) => `
+                <tr>
+                  <td style="padding:6px;border-bottom:1px solid var(--border);color:var(--muted);font-family:'Space Mono'">${String.fromCharCode(65+oi)}</td>
+                  <td style="padding:6px;border-bottom:1px solid var(--border)">${escHtml(opt.text)}</td>
+                  ${traitKeys.map(tk => {
+                    const v = opt.scores?.[tk] || 0;
+                    const color = v >= 7 ? 'var(--green)' : v >= 4 ? 'var(--accent)' : 'var(--muted)';
+                    return `<td style="padding:6px;border-bottom:1px solid var(--border);text-align:center;font-family:'Space Mono';color:${color};font-weight:${v>=7?700:400}">${v}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  });
+
+  // 4) Live preview: simulate "if user picks A,A,A,..." what would result be?
+  html += `
+    <div style="background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:10px;padding:14px;margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:8px">${i18n.t('logic_simulator')}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6">${i18n.t('logic_simulator_desc')}</div>
+    </div>`;
+
+  document.getElementById('detail-logic').innerHTML = html;
 }
 
 /* ════════════════════════════════════════════

@@ -624,6 +624,81 @@ All text should be in Korean unless the user specifies otherwise.`;
   }
 });
 
+// Edit existing poll with AI
+app.post('/api/ai/edit', authMiddleware, async (req, res) => {
+  const { engine, poll_id, instruction, api_key } = req.body;
+  if (!engine || !poll_id || !instruction || !api_key) {
+    return res.status(400).json({ error: 'engine, poll_id, instruction, api_key are required' });
+  }
+
+  const existing = parsePoll(db.prepare('SELECT * FROM polls WHERE id = ?').get(poll_id));
+  if (!existing) return res.status(404).json({ error: 'Poll not found' });
+
+  const isTypePoll = existing.result_mode === 'type' && existing.types;
+  const systemPrompt = isTypePoll
+    ? `You are a quiz editor. The user wants to modify an existing personality-type quiz. Return the FULL updated quiz JSON with the same structure as input.
+
+STRICT RULES:
+- Return ONLY valid JSON, no markdown, no explanation
+- Preserve the existing schema: title, description, result_mode='type', types{...}, questions[{text,text_en,options[{text,text_en,scores{}}]}]
+- Keep all original ko/en translations unless the user asks to change them
+- If adding/modifying types, include icon, color, ko, en, desc, desc_en, traits, traits_en, profile
+- Profile values 0-100, option scores 1-10
+- Apply the user's instruction precisely
+- Keep questions count and options count unless user asks otherwise`
+    : `You are a poll editor. The user wants to modify an existing poll. Return the FULL updated poll JSON.
+
+STRICT RULES:
+- Return ONLY valid JSON, no markdown, no explanation
+- Preserve the existing schema: title, description, questions[{text,text_en,options[{text,text_en}]}]
+- Keep all original ko/en translations unless the user asks to change them
+- Apply the user's instruction precisely`;
+
+  // Strip non-AI fields for the prompt
+  const promptPoll = {
+    title: existing.title,
+    description: existing.description,
+    ...(existing.result_mode === 'type' ? { result_mode: 'type', types: existing.types } : {}),
+    questions: existing.questions.map(q => {
+      const cleanQ = { text: q.text };
+      if (q.text_en) cleanQ.text_en = q.text_en;
+      cleanQ.options = q.options.map(o => {
+        const opt = { text: o.text };
+        if (o.text_en) opt.text_en = o.text_en;
+        if (o.scores) opt.scores = o.scores;
+        return opt;
+      });
+      return cleanQ;
+    }),
+  };
+
+  const userPrompt = `현재 폴 (JSON):\n${JSON.stringify(promptPoll, null, 2)}\n\n수정 요청:\n${instruction}\n\n위 요청에 맞춰 전체 폴 JSON을 다시 작성해주세요.`;
+
+  try {
+    let result;
+    if (engine === 'claude') result = await callClaude(api_key, systemPrompt, userPrompt);
+    else if (engine === 'gemini') result = await callGemini(api_key, systemPrompt, userPrompt);
+    else if (engine === 'chatgpt') result = await callChatGPT(api_key, systemPrompt, userPrompt);
+    else return res.status(400).json({ error: 'Unsupported engine' });
+
+    let parsed;
+    try {
+      let cleaned = result.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON object found');
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error('[AI Edit] Failed to parse JSON. Raw response:', result.slice(0, 500));
+      return res.status(500).json({ error: 'AI did not return valid JSON', raw: result.slice(0, 300) });
+    }
+
+    res.json({ success: true, poll: parsed });
+  } catch (err) {
+    console.error('[AI Edit Error]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 async function callClaude(apiKey, systemPrompt, userPrompt) {
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',

@@ -759,8 +759,26 @@ body {
         <div id="detail-logic" style="display:none;margin-top:16px"></div>
       </div>
 
+      <!-- AI Edit Panel -->
+      <div class="card" style="border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.04)">
+        <div class="card-header">
+          <span class="card-title">🤖 <span data-i18n="ai_edit_title">AI로 수정하기</span></span>
+        </div>
+        <div class="form-hint" style="margin-bottom:10px" data-i18n="ai_edit_hint">현재 폴을 AI에게 수정 지시할 수 있습니다. 예: "질문을 더 재미있게", "결과 유형을 6개로 늘려줘"</div>
+        <textarea class="form-textarea" id="ai-edit-instruction" rows="3" data-i18n-placeholder="ai_edit_placeholder" placeholder="수정 요청 내용을 자세히 적어주세요..." style="margin-bottom:10px"></textarea>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="form-select" id="ai-edit-engine" style="flex:0 0 auto;padding:8px 12px;font-size:12px">
+            <option value="claude">🟣 Claude</option>
+            <option value="gemini">🔵 Gemini</option>
+            <option value="chatgpt">🟢 ChatGPT</option>
+          </select>
+          <button class="btn btn-primary" onclick="aiEditPoll()" id="btn-ai-edit" style="flex:1" data-i18n="btn_ai_edit">🤖 AI로 수정 적용하기</button>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn" onclick="manualEditPoll()" data-i18n="btn_manual_edit">수동 편집</button>
         <button class="btn btn-danger" onclick="deletePoll()" data-i18n="btn_delete">삭제</button>
       </div>
     </div>
@@ -864,6 +882,15 @@ const translations = {
     logic_option: '선택지',
     logic_simulator: '🎲 결과 시뮬레이션',
     logic_simulator_desc: '각 선택지의 점수가 사용자의 누적 점수에 더해지고, 모든 질문이 끝나면 누적 점수와 유형 프로필 간 코사인 유사도를 계산해 가장 가까운 유형으로 결과가 결정됩니다.',
+    ai_edit_title: 'AI로 수정하기',
+    ai_edit_hint: '현재 폴을 AI에게 수정 지시할 수 있습니다. 예: "질문을 더 재미있게", "결과 유형을 6개로 늘려줘"',
+    ai_edit_placeholder: '수정 요청 내용을 자세히 적어주세요...',
+    btn_ai_edit: '🤖 AI로 수정 적용하기',
+    btn_manual_edit: '수동 편집',
+    toast_enter_instruction: '수정 요청 내용을 입력해주세요',
+    toast_ai_edit_applied: 'AI 수정이 적용되었습니다!',
+    toast_loaded_for_edit: '편집 모드로 불러왔습니다. 수정 후 저장하세요.',
+    toast_poll_updated: '폴이 업데이트되었습니다!',
     label_cta: 'CTA 링크 버튼 (선택)',
     ph_cta_label_ko: '버튼 텍스트 (한국어)',
     ph_cta_label_en: '버튼 텍스트 (English)',
@@ -1025,6 +1052,15 @@ const translations = {
     logic_option: 'Option',
     logic_simulator: '🎲 Result Simulation',
     logic_simulator_desc: 'Each option\'s scores accumulate into the user\'s total. After all questions, cosine similarity between the totals and each type\'s profile determines the closest matching type.',
+    ai_edit_title: 'Edit with AI',
+    ai_edit_hint: 'Ask AI to modify this poll. e.g., "make questions more fun", "increase result types to 6"',
+    ai_edit_placeholder: 'Describe what you want to change...',
+    btn_ai_edit: '🤖 Apply AI Edit',
+    btn_manual_edit: 'Manual Edit',
+    toast_enter_instruction: 'Please enter instruction',
+    toast_ai_edit_applied: 'AI edit applied!',
+    toast_loaded_for_edit: 'Loaded in edit mode. Save when ready.',
+    toast_poll_updated: 'Poll updated!',
     label_cta: 'CTA Link Button (Optional)',
     ph_cta_label_ko: 'Button text (Korean)',
     ph_cta_label_en: 'Button text (English)',
@@ -1186,6 +1222,15 @@ const translations = {
     logic_option: '選択肢',
     logic_simulator: '🎲 結果シミュレーション',
     logic_simulator_desc: '各選択肢のスコアがユーザーの累積スコアに加算され、すべての質問が終わると累積スコアとタイププロファイル間のコサイン類似度を計算し、最も近いタイプとして結果が決定されます。',
+    ai_edit_title: 'AIで編集',
+    ai_edit_hint: 'AIに現在のポール修正を指示できます。例：「質問をもっと面白く」「結果タイプを6つに増やして」',
+    ai_edit_placeholder: '修正リクエストを詳しく書いてください...',
+    btn_ai_edit: '🤖 AIで編集を適用',
+    btn_manual_edit: '手動編集',
+    toast_enter_instruction: '修正内容を入力してください',
+    toast_ai_edit_applied: 'AI編集が適用されました！',
+    toast_loaded_for_edit: '編集モードで読み込みました。保存してください。',
+    toast_poll_updated: 'ポールが更新されました！',
     label_cta: 'CTAリンクボタン（任意）',
     ph_cta_label_ko: 'ボタンテキスト（韓国語）',
     ph_cta_label_en: 'ボタンテキスト（English）',
@@ -1679,6 +1724,7 @@ function removeOption(qIdx, oIdx) {
 function clearEditor() {
   editingQuestions = [];
   generatedTypes = null;
+  editingPollId = null;
   document.getElementById('poll-title').value = '';
   document.getElementById('poll-description').value = '';
   document.getElementById('cta-label-ko').value = '';
@@ -1796,16 +1842,18 @@ async function savePoll() {
       body.types = generatedTypes;
     }
 
-    const resp = await authFetch('/api/polls', {
-      method: 'POST',
+    const isEdit = !!editingPollId;
+    const resp = await authFetch(isEdit ? `/api/polls/${editingPollId}` : '/api/polls', {
+      method: isEdit ? 'PUT' : 'POST',
       body: JSON.stringify(body),
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error);
 
-    toast(i18n.t('toast_poll_saved'));
+    toast(i18n.t(isEdit ? 'toast_poll_updated' : 'toast_poll_saved'));
+    const targetId = isEdit ? editingPollId : data.poll.id;
     clearEditor();
-    viewPollDetail(data.poll.id);
+    viewPollDetail(targetId);
   } catch (err) {
     toast(i18n.t('toast_save_fail') + err.message, 'error');
   }
@@ -1888,6 +1936,100 @@ async function viewPollDetail(pollId) {
 }
 
 let currentPollData = null;
+let editingPollId = null; // when set, savePoll will PUT instead of POST
+
+/* ════════════════════════════════════════════
+   AI EDIT (existing poll)
+════════════════════════════════════════════ */
+async function aiEditPoll() {
+  if (!currentPollId || !currentPollData) return;
+
+  const instruction = document.getElementById('ai-edit-instruction').value.trim();
+  if (!instruction) return toast(i18n.t('toast_enter_instruction'), 'error');
+
+  const engine = document.getElementById('ai-edit-engine').value;
+  const keyFields = { claude: 'setting-claude-key', gemini: 'setting-gemini-key', chatgpt: 'setting-chatgpt-key' };
+  const apiKey = document.getElementById(keyFields[engine]).value || localStorage.getItem(`api_key_${engine}`);
+  if (!apiKey) return toast(i18n.t('toast_api_key_missing'), 'error');
+
+  const btn = document.getElementById('btn-ai-edit');
+  btn.disabled = true;
+  const origText = btn.innerHTML;
+  btn.innerHTML = '<span class="loading-spinner"></span> ' + i18n.t('toast_ai_generating');
+
+  try {
+    const resp = await authFetch('/api/ai/edit', {
+      method: 'POST',
+      body: JSON.stringify({ engine, poll_id: currentPollId, instruction, api_key: apiKey }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error);
+
+    const updated = data.poll;
+
+    // Apply updated poll back to DB via PUT
+    const putBody = {
+      title: updated.title || currentPollData.title,
+      description: updated.description || currentPollData.description,
+      questions: updated.questions,
+    };
+    if (updated.result_mode === 'type' && updated.types) {
+      putBody.result_mode = 'type';
+      putBody.types = updated.types;
+    }
+
+    const putResp = await authFetch(`/api/polls/${currentPollId}`, {
+      method: 'PUT',
+      body: JSON.stringify(putBody),
+    });
+    if (!putResp.ok) throw new Error((await putResp.json()).error);
+
+    toast(i18n.t('toast_ai_edit_applied'));
+    document.getElementById('ai-edit-instruction').value = '';
+    viewPollDetail(currentPollId); // reload
+  } catch (err) {
+    toast(i18n.t('toast_generate_fail') + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = origText;
+  }
+}
+
+/* ════════════════════════════════════════════
+   MANUAL EDIT (load existing poll into editor)
+════════════════════════════════════════════ */
+function manualEditPoll() {
+  if (!currentPollData) return;
+
+  editingPollId = currentPollId;
+  editingQuestions = (currentPollData.questions || []).map(q => ({
+    text: q.text,
+    text_en: q.text_en,
+    text_ja: q.text_ja,
+    image_url: q.image_url,
+    options: (q.options || []).map(o => ({
+      text: o.text,
+      text_en: o.text_en,
+      text_ja: o.text_ja,
+      scores: o.scores,
+    })),
+  }));
+  generatedTypes = currentPollData.types || null;
+
+  document.getElementById('poll-title').value = currentPollData.title || '';
+  document.getElementById('poll-description').value = currentPollData.description || '';
+
+  // CTA fields
+  const cta = currentPollData.cta || {};
+  document.getElementById('cta-label-ko').value = cta.label_ko || '';
+  document.getElementById('cta-label-en').value = cta.label || '';
+  document.getElementById('cta-url').value = cta.url || '';
+
+  renderQuestions();
+  showPanel('create');
+  toast(i18n.t('toast_loaded_for_edit'));
+  document.querySelector('#panel-create .card')?.scrollIntoView({ behavior: 'smooth' });
+}
 
 function toggleLogicPanel() {
   const panel = document.getElementById('detail-logic');
